@@ -1,0 +1,38 @@
+// server.js - Servidor básico web chat con Express
+
+const express = require('express');
+const path = require('path');
+const app = express();
+
+const PORT = process.env.PORT || 3000;
+
+// Middleware para parsear JSON en requests
+app.use(express.json());
+
+// Servir archivos estáticos de la carpeta 'public' (tu frontend)
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Endpoint API simple para prueba o salud
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'Servidor activo y funcionando' });
+});
+
+// Endpoint ejemplo para enviar un mensaje (puedes agregar lógica para guardar en Firebase o base de datos)
+app.post('/api/messages', (req, res) => {
+  const { chatId, texto, remitenteId } = req.body;
+  if (!chatId || !texto || !remitenteId) {
+    return res.status(400).json({ error: 'Faltan parámetros obligatorios' });
+  }
+  // Aquí puedes integrar Firebase Admin SDK para guardar mensajes en Realtime Database si quieres
+  console.log(`Mensaje recibido para chat ${chatId} de ${remitenteId}: ${texto}`);
+  res.status(201).json({ success: true, message: 'Mensaje recibido' });
+});
+
+// Ruta para enviar el index.html si no se encuentra otro archivo
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en http://localhost:${PORT}`);
+});

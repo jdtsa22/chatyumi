@@ -1,0 +1,37 @@
+// message.js - Funciones para manejar mensajes en Firebase Realtime Database
+
+import { db } from './firebaseConfig'; // asumiendo que exportas la instancia de Firebase DB desde otro archivo
+
+// Función para enviar un mensaje al chat específico
+export function enviarMensaje(chatId, texto, remitenteId) {
+  if (!texto.trim()) return; // No enviar texto vacío
+  const mensajeRef = db.ref(`mensajes/${chatId}`).push();
+  mensajeRef.set({
+    texto: texto,
+    remitenteId: remitenteId,
+    timestamp: Date.now(),
+    tipo: 'texto'
+  });
+}
+
+// Función para escuchar mensajes nuevos en un chat dado
+export function escucharMensajes(chatId, callback) {
+  const mensajesRef = db.ref(`mensajes/${chatId}`);
+  mensajesRef.off(); // remover escuchas previas
+  mensajesRef.on('child_added', snapshot => {
+    const mensaje = snapshot.val();
+    if (mensaje) {
+      callback({
+        id: snapshot.key,
+        texto: mensaje.texto,
+        remitenteId: mensaje.remitenteId,
+        timestamp: mensaje.timestamp,
+        tipo: mensaje.tipo || 'texto'
+      });
+    }
+  });
+}
+
+// Ejemplo de uso:
+// enviarMensaje('chat123', 'Hola, ¿cómo estás?', 'usuario1');
+// escucharMensajes('chat123', msg => console.log('Nuevo mensaje:', msg));

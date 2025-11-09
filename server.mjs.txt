@@ -1,0 +1,16 @@
+// Importamos el módulo 'http' de Node.js para crear un servidor HTTP
+import { createServer } from 'node:http';
+
+// Creamos un servidor
+const server = createServer((req, res) => {
+  // Establecemos el código de respuesta y el tipo de contenido como texto plano
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+  
+  // Enviamos una respuesta simple de "Hello World!" al navegador
+  res.end('Hello World!\n');
+});
+
+// El servidor escucha en el puerto 3000 de la dirección 127.0.0.1 (localhost)
+server.listen(3000, '127.0.0.1', () => {
+  console.log('Listening on 127.0.0.1:3000');
+});

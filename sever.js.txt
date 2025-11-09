@@ -1,0 +1,20 @@
+// server.js - Servidor básico con Node.js y Express para app Firebase RTDB
+
+const express = require('express');
+const path = require('path');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Servir archivos estáticos (HTML, CSS, JS) desde la carpeta 'public'
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Endpoint de prueba
+app.get('/api/hello', (req, res) => {
+  res.json({ message: 'Hola desde el servidor Node.js!' });
+});
+
+// Iniciar servidor
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en http://localhost:${PORT}`);
+});

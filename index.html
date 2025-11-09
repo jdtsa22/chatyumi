@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>WhatsApp Realista Chat App</title>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+<style>
+  body {
+    margin: 0;
+    font-family: "Segoe UI", sans-serif;
+    background-color: #ece5dd;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+  .app {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
+    position: relative;
+    background-color: #fff;
+  }
+
+  /* Header */
+  .header {
+    background-color: #075e54;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    position: relative;
+    z-index: 50;
+  }
+  .header .chat-info {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+  .header img {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    margin-right: 10px;
+    object-fit: cover;
+  }
+  .header .actions i {
+    margin-left: 15px;
+    cursor: pointer;
+    color: white;
+    user-select: none;
+  }
+
+  /* Menu configuración */
+  .config-menu {
+    display: none;
+    position: absolute;
+    top: 60px;
+    right: 10px;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    width: 180px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    z-index: 100;
+  }
+  .config-menu div {
+    padding: 10px 14px;
+    cursor: pointer;
+    color: #075e54;
+    font-weight: 500;
+  }
+  .config-menu div:hover {
+    background-color: #f0f0f0;
+  }
+
+  /* Chat area */
+  .chat-area {
+    flex: 1;
+    background-color: #dcf8c6;
+    padding: 10px;
+    padding-bottom: 90px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    scroll-behavior: smooth;
+  }
+
+  /* Mensajes */
+  .message {
+    background-color: #fff;
+    padding: 10px 14px;
+    margin: 6px;
+    border-radius: 10px;
+    max-width: 70%;
+    word-break: break-word;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+    animation: fadeInUp 0.4s forwards, bounce 0.4s ease;
+    position: relative;
+  }
+  @keyframes fadeInUp {
+    to {opacity: 1; transform: translateY(0) scale(1);}
+  }
+  @keyframes bounce {
+    0% {transform: translateY(20px) scale(0.95);}
+    50% {transform: translateY(-5px) scale(1.02);}
+    100% {transform: translateY(0) scale(1);}
+  }
+  .message.sent {
+    align-self: flex-end;
+    background-color: #dcf8c6;
+  }
+  .message.received {
+    align-self: flex-start;
+    background-color: #fff;
+  }
+  .message img {
+    max-width: 200px;
+    border-radius: 8px;
+    display: block;
+    margin-top: 5px;
+  }
+  .file-msg {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background-color: #e8f5e9;
+    padding: 5px 8px;
+    border-radius: 6px;
+  }
+
+  /* AUDIO BUBBLE (estilo tipo WhatsApp) */
+  .audio-bubble {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+  }
+  .audio-player {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:#e6f3ea;
+    padding:6px 10px;
+    border-radius:20px;
+    max-width:320px;
+    width:100%;
+  }
+  .audio-play {
+    width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:none;background:transparent;cursor:pointer;font-size:20px;color:#075e54;
+  }
+  .audio-progress {flex:1;height:6px;background:#dcdcdc;border-radius:6px;overflow:hidden;position:relative;cursor:pointer}
+  .audio-progress .bar{height:100%;width:0;background:#25d366;transition:width 0.1s linear}
+  .audio-duration{font-size:12px;color:#333;min-width:40px;text-align:right}
+  .audio-wave{display:inline-block;width:28px;height:12px;background:linear-gradient(90deg,#25d366 #25d366);opacity:0.15;border-radius:4px}
+
+  /* Map link style */
+  .map-link {
+    display:inline-flex;
+    gap:10px;
+    align-items:center;
+    background:#eef7ff;
+    padding:8px;
+    border-radius:12px;
+    text-decoration:none;
+    color:#075e54;
+    border:1px solid rgba(0,0,0,0.05);
+  }
+
+  /* Escribiendo */
+  .typing {
+    font-style: italic;
+    color: #555;
+    font-size: 14px;
+    margin: 5px 6px;
+    align-self: flex-start;
+    animation: blink 1s infinite;
+  }
+  @keyframes blink {
+    0%,50%,100% {opacity: 1;}
+    25%,75% {opacity: 0;}
+  }
+
+  /* Footer con botones dinámicos */
+  .footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #075e54; /* mism color verde oscuro del header */
+    display: flex;
+    align-items: center;
+    padding: 6px 8px;
+    border-top: 1px solid #ccc;
+    gap: 6px;
+    z-index: 100;
+    flex-wrap: nowrap;
+    box-sizing: border-box;
+    overflow-x: auto;
+    transition: transform 0.3s ease;
+  }
+  .footer.hidden {
+    transform: translateY(120%);
+  }
+
+  .footer .icon-btn {
+    background-color: #075e54; /* verde oscuro igual que header */
+    color: white;
+    font-size: 26px;
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 50%;
+    border: none;
+    transition: background 0.3s;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+  }
+  .footer .icon-btn:hover {
+    background-color: #094b43;
+  }
+
+  .footer input#messageInput {
+    flex: 1 1 auto;
+    min-width: 0;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 12px;
+    background-color: #f0f0f0;
+    outline: none;
+    font-size: 14px;
+    box-sizing: border-box;
+    white-space: nowrap;
+  }
+
+  /* Botón flotante contactos */
+  .fab {
+    position: fixed;
+    bottom: 90px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    font-size: 32px;
+    background-color: #25d366;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    transition: background 0.3s;
+    z-index: 200;
+    user-select: none;
+  }
+  .fab:hover {
+    background-color: #1ebe5d;
+  }
+
+  /* Panel contactos lateral */
+  .contacts-panel {
+    position: fixed;
+    top: 0;
+    right: -300px;
+    width: 300px;
+    height: 100%;
+    background: #fff;
+    box-shadow: -3px 0 8px rgba(0,0,0,0.3);
+    transition: right 0.3s ease;
+    z-index: 150;
+    overflow-y: auto;
+  }
+  .contacts-panel.active {
+    right: 0;
+  }
+  .contacts-panel h3 {
+    padding: 15px;
+    border-bottom: 1px solid #ccc;
+    margin: 0;
+  }
+  .contacts-panel .contact {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    user-select: none;
+  }
+  .contacts-panel .contact img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+    object-fit: cover;
+  }
+  .contacts-panel .contact:hover {
+    background-color: #f0f0f0;
+  }
+
+  /* Última conexión (status) */
+  .status-small {
+    font-size: 12px;
+    color: #cfcfcf;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .footer .icon-btn {
+      font-size: 24px;
+      padding: 8px;
+    }
+    .footer input#messageInput {
+      font-size: 13px;
+    }
+    .fab {
+      width: 50px;
+      height: 50px;
+      font-size: 26px;
+      bottom: 80px;
+    }
+    .contacts-panel {
+      width: 70%;
+    }
+  }
+  @media (max-width: 400px) {
+    .footer {
+      overflow-x: auto;
+    }
+    .footer .icon-btn {
+      font-size: 22px;
+      padding: 8px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<audio id="notifySound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+<audio id="sendSound" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" preload="auto"></audio>
+
+<div class="app">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="chat-info" id="profilePhoto">
+      <img src="https://i.pravatar.cc/50" alt="Contacto" id="profilePic" title="Click para cambiar foto de perfil" />
+      <div>
+        <strong id="chatName">Contacto</strong><br />
+        <small class="status-small" id="chatStatus">en línea</small>
+      </div>
+    </div>
+    <div class="actions">
+      <i class="material-icons" id="callBtn" title="Llamada">call</i>
+      <i class="material-icons" id="videoBtn" title="Videollamada">videocam</i>
+      <i class="material-icons" id="configBtn" title="Configuración">more_vert</i>
+      <div class="config-menu" id="configMenu">
+        <div onclick="alert('Perfil')">Perfil</div>
+        <div onclick="alert('Fondo de chat')">Fondo de chat</div>
+        <div onclick="alert('Notificaciones')">Notificaciones</div>
+        <div onclick="alert('Cerrar menú')">Cerrar menú</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat area -->
+  <div class="chat-area" id="chatArea" aria-live="polite">
+    <div class="message received">¡Hola! 😊</div>
+    <div class="message sent">¡Hola! ¿Cómo estás?</div>
+    <!-- Typing indicator -->
+    <div class="typing" id="typingIndicator" style="display:none;">escribiendo...</div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer" id="footer">
+    <button class="icon-btn" id="emojiBtn" title="Emojis"><i class="material-icons">emoji_emotions</i></button>
+    <button class="icon-btn" id="photoBtn" title="Enviar foto"><i class="material-icons">photo_camera</i></button>
+    <button class="icon-btn" id="fileBtn" title="Adjuntar archivo"><i class="material-icons">attach_file</i></button>
+    <button class="icon-btn" id="locationBtn" title="Enviar ubicación"><i class="material-icons">location_on</i></button>
+
+    <input type="text" id="messageInput" placeholder="Escribe un mensaje..." aria-label="Escribir mensaje" />
+    
+    <button class="icon-btn" id="sendBtn" title="Enviar mensaje"><i class="material-icons">send</i></button>
+    <button class="icon-btn" id="micBtn" title="Enviar nota de voz"><i class="material-icons" id="micIcon">mic</i></button>
+  </div>
+
+  <!-- Hidden inputs for file/photo -->
+  <input type="file" id="fileInput" multiple hidden />
+  <input type="file" id="photoInput" accept="image/*" capture="environment" hidden />
+
+  <!-- Floating contacts button -->
+  <div class="fab" id="contactsBtn" title="Contactos"><i class="material-icons">contacts</i></div>
+
+  <!-- Contacts panel -->
+  <div class="contacts-panel" id="contactsPanel" aria-label="Panel de contactos">
+    <h3>Mis Contactos</h3>
+    <div class="contact" data-name="Juan" data-status="en línea">
+      <img src="https://i.pravatar.cc/50?img=1" alt="Juan" />
+      Juan
+    </div>
+    <div class="contact" data-name="María" data-status="ocupado">
+      <img src="https://i.pravatar.cc/50?img=2" alt="María" />
+      María
+    </div>
+    <div class="contact" data-name="Carlos" data-status="en línea">
+      <img src="https://i.pravatar.cc/50?img=3" alt="Carlos" />
+      Carlos
+    </div>
+    <div class="contact" data-name="Ana" data-status="en línea">
+      <img src="https://i.pravatar.cc/50?img=4" alt="Ana" />
+      Ana
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ---------- ELEMENTOS ----------
+  const configBtn = document.getElementById('configBtn');
+  const configMenu = document.getElementById('configMenu');
+  const contactsBtn = document.getElementById('contactsBtn');
+  const contactsPanel = document.getElementById('contactsPanel');
+  const chatArea = document.getElementById('chatArea');
+  const messageInput = document.getElementById('messageInput');
+  const notifySound = document.getElementById('notifySound');
+  const sendSound = document.getElementById('sendSound');
+  const micBtn = document.getElementById('micBtn');
+  const micIcon = document.getElementById('micIcon');
+  const locationBtn = document.getElementById('locationBtn');
+  const photoBtn = document.getElementById('photoBtn');
+  const photoInput = document.getElementById('photoInput');
+  const fileBtn = document.getElementById('fileBtn');
+  const fileInput = document.getElementById('fileInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const typingIndicator = document.getElementById('typingIndicator');
+
+  // ---------- CONFIG MENU ----------
+  configBtn.addEventListener('click', () => {
+    configMenu.style.display = configMenu.style.display === 'block' ? 'none' : 'block';
+  });
+  document.addEventListener('click', (e) => {
+    if (!configMenu.contains(e.target) && e.target !== configBtn) configMenu.style.display = 'none';
+  });
+
+  // ---------- CONTACTS PANEL ----------
+  contactsBtn.addEventListener('click', () => contactsPanel.classList.toggle('active'));
+  contactsPanel.querySelectorAll('.contact').forEach(contact => {
+    contact.addEventListener('click', () => {
+      const name = contact.getAttribute('data-name');
+      const status = contact.getAttribute('data-status');
+      document.getElementById('chatName').textContent = name;
+      document.getElementById('chatStatus').textContent = status;
+      chatArea.innerHTML = '';
+      addMessage(`¡Hola! Soy ${name}`, 'received');
+      contactsPanel.classList.remove('active');
+      scrollChat();
+    });
+  });
+
+  // ---------- HELPERS ----------
+  function scrollChat(){ chatArea.scrollTop = chatArea.scrollHeight; }
+  function playSendSound(){ sendSound.currentTime = 0; sendSound.play().catch(()=>{}); }
+  function playNotify(){ notifySound.currentTime = 0; notifySound.play().catch(()=>{}); }
+
+  function addMessage(content, type='received'){
+    const msg = document.createElement('div');
+    msg.classList.add('message', type === 'sent' ? 'sent' : 'received');
+    if (typeof content === 'string') msg.textContent = content;
+    else msg.appendChild(content); // allow Node (for audio/map)
+    chatArea.appendChild(msg);
+    scrollChat();
+  }
+
+  // ---------- ENVIAR MENSAJE TEXTO ----------
+  sendBtn.addEventListener('click', sendMessage);
+  messageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+  function sendMessage(){
+    const text = messageInput.value.trim();
+    if (!text) return;
+    addMessage(text, 'sent');
+    messageInput.value = '';
+    playSendSound();
+    setTimeout(()=>{ addMessage('Recibido: ' + text, 'received'); playNotify(); }, 1000 + Math.random()*1200);
+  }
+
+  // ---------- FOTO y ARCHIVO ----------
+  photoBtn.addEventListener('click', ()=> photoInput.click());
+  photoInput.addEventListener('change', ()=> {
+    addMessage('📷 Foto enviada', 'sent');
+    playSendSound();
+    setTimeout(()=>{ addMessage('Imagen recibida', 'received'); playNotify(); }, 900 + Math.random()*900);
+  });
+  fileBtn.addEventListener('click', ()=> fileInput.click());
+  fileInput.addEventListener('change', ()=> {
+    addMessage('📎 Archivo enviado', 'sent');
+    playSendSound();
+    setTimeout(()=>{ addMessage('Archivo recibido', 'received'); playNotify(); }, 900 + Math.random()*900);
+  });
+
+  // ---------- UBICACIÓN -> abre en Google Maps ----------
+  locationBtn.addEventListener('click', () => {
+    if (!navigator.geolocation) { alert('Geolocalización no soportada.'); return; }
+    navigator.geolocation.getCurrentPosition(pos => {
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+      // crear elemento con link a Google Maps (igual visual)
+      const link = document.createElement('a');
+      link.className = 'map-link';
+      link.href = `https://www.google.com/maps?q=${lat},${lon}`;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.innerHTML = `<span class="material-icons" aria-hidden="true">location_on</span><div><div>Ubicación compartida</div><small style="color:#444">${lat.toFixed(5)}, ${lon.toFixed(5)}</small></div>`;
+      addMessage(link, 'sent');
+      playSendSound();
+      setTimeout(()=>{ addMessage('Recibido tu punto ✔️','received'); playNotify(); }, 1000 + Math.random()*1000);
+    }, err => {
+      if (err && err.code === 1) alert('Permiso de ubicación denegado.');
+      else alert('No se pudo obtener la ubicación.');
+    }, { enableHighAccuracy: true, timeout: 10000 });
+  });
+
+  // ---------- NOTA DE VOZ REAL: mantener presionado para grabar ----------
+  let mediaRecorder = null;
+  let chunks = [];
+  let recording = false;
+
+  // timer UI minimal (se muestra en title del micrófono)
+  let timerInterval = null;
+  let startTime = 0;
+  function startTimer(){
+    startTime = Date.now();
+    micBtn.title = 'Grabando... 00:00 (suelta para enviar)';
+    timerInterval = setInterval(()=> {
+      const diff = Date.now() - startTime;
+      const s = Math.floor(diff/1000);
+      const mm = String(Math.floor(s/60)).padStart(2,'0');
+      const ss = String(s%60).padStart(2,'0');
+      micBtn.title = `Grabando... ${mm}:${ss} (suelta para enviar)`;
+    }, 250);
+  }
+  function stopTimer(){
+    clearInterval(timerInterval); timerInterval = null;
+    micBtn.title = 'Enviar nota de voz';
+  }
+
+  async function startRecording(){
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      chunks = [];
+      mediaRecorder = new MediaRecorder(stream);
+      mediaRecorder.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(chunks, { type: chunks[0]?.type || 'audio/webm' });
+        createAudioMessage(blob);
+        // stop tracks
+        stream.getTracks().forEach(t => t.stop());
+      };
+      mediaRecorder.start();
+      recording = true;
+      micIcon.textContent = 'mic_off';
+      micBtn.style.background = '#d9534f'; // visual feedback
+      startTimer();
+    } catch (e) {
+      console.error(e);
+      alert('No se pudo acceder al micrófono. Revisa permisos.');
+    }
+  }
+
+  function stopRecording(){
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop();
+    }
+    mediaRecorder = null;
+    recording = false;
+    micIcon.textContent = 'mic';
+    micBtn.style.background = ''; // reset
+    stopTimer();
+  }
+
+  // press & hold behavior (mouse + touch)
+  let pressTimeout = null;
+  const PRESS_DELAY = 150; // ms to avoid accidental taps
+  function onStartPress(e){
+    e.preventDefault();
+    if (pressTimeout) clearTimeout(pressTimeout);
+    pressTimeout = setTimeout(()=> {
+      startRecording();
+      pressTimeout = null;
+    }, PRESS_DELAY);
+  }
+  function onEndPress(e){
+    e.preventDefault();
+    if (pressTimeout) { clearTimeout(pressTimeout); pressTimeout = null; return; }
+    // if recording, stop and send
+    if (recording) stopRecording();
+    else {
+      // short tap -> provide hint
+      alert('Mantén presionado el botón para grabar una nota de voz. Suelta para enviar.');
+    }
+  }
+
+  micBtn.addEventListener('mousedown', onStartPress);
+  document.addEventListener('mouseup', (e)=> {
+    if (pressTimeout) { clearTimeout(pressTimeout); pressTimeout = null; }
+    if (recording) stopRecording();
+  });
+  micBtn.addEventListener('touchstart', onStartPress, {passive:false});
+  micBtn.addEventListener('touchend', (e)=> { if (pressTimeout) { clearTimeout(pressTimeout); pressTimeout = null; } if (recording) stopRecording(); });
+
+  // create audio message bubble with small player
+  function createAudioMessage(blob){
+    const url = URL.createObjectURL(blob);
+    const container = document.createElement('div');
+    container.className = 'audio-bubble';
+    const wrapper = document.createElement('div');
+    wrapper.className = 'audio-player';
+
+    // play button
+    const playBtn = document.createElement('button');
+    playBtn.className = 'audio-play';
+    playBtn.innerHTML = '<span class="material-icons">play_arrow</span>';
+    playBtn.type = 'button';
+
+    // progress
+    const progress = document.createElement('div');
+    progress.className = 'audio-progress';
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    progress.appendChild(bar);
+
+    // duration placeholder
+    const duration = document.createElement('div');
+    duration.className = 'audio-duration';
+    duration.textContent = '00:00';
+
+    // audio element
+    const audio = document.createElement('audio');
+    audio.src = url;
+    audio.preload = 'metadata';
+
+    // when metadata loaded, set duration text
+    audio.addEventListener('loadedmetadata', ()=> {
+      const s = Math.round(audio.duration);
+      const mm = String(Math.floor(s/60)).padStart(2,'0');
+      const ss = String(s%60).padStart(2,'0');
+      duration.textContent = `${mm}:${ss}`;
+    });
+
+    // update bar while playing
+    let raf = null;
+    function update(){
+      if (!isNaN(audio.duration) && audio.duration > 0) {
+        const pct = (audio.currentTime / audio.duration) * 100;
+        bar.style.width = pct + '%';
+      }
+      if (!audio.paused) raf = requestAnimationFrame(update);
+    }
+
+    playBtn.addEventListener('click', ()=> {
+      if (audio.paused) {
+        // pause other audios
+        document.querySelectorAll('audio').forEach(a => { if (a !== audio) { a.pause(); } });
+        audio.play().catch(()=>{});
+        playBtn.innerHTML = '<span class="material-icons">pause</span>';
+        update();
+      } else {
+        audio.pause();
+        playBtn.innerHTML = '<span class="material-icons">play_arrow</span>';
+        if (raf) cancelAnimationFrame(raf);
+      }
+    });
+
+    audio.addEventListener('ended', ()=> {
+      playBtn.innerHTML = '<span class="material-icons">play_arrow</span>';
+      bar.style.width = '0%';
+      if (raf) cancelAnimationFrame(raf);
+    });
+
+    // seek when clicking progress
+    progress.addEventListener('click', (ev) => {
+      const rect = progress.getBoundingClientRect();
+      const pct = Math.min(Math.max(0, (ev.clientX - rect.left) / rect.width), 1);
+      if (!isNaN(audio.duration)) audio.currentTime = pct * audio.duration;
+    });
+
+    wrapper.appendChild(playBtn);
+    wrapper.appendChild(progress);
+    wrapper.appendChild(duration);
+    container.appendChild(wrapper);
+
+    // append as sent message (keeping same visual)
+    const msgWrap = document.createElement('div');
+    msgWrap.className = 'message sent';
+    msgWrap.appendChild(container);
+    chatArea.appendChild(msgWrap);
+    scrollChat();
+    playSendSound();
+    // simulate received ack
+    setTimeout(()=> { addMessage('Escuché tu nota de voz 👍', 'received'); playNotify(); }, 1100 + Math.random()*900);
+  }
+
+  // ---------- CALL & VIDEO (simulación permisos) ----------
+  document.getElementById('callBtn').addEventListener('click', async () => {
+    try {
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+      alert('Llamada iniciada (simulación): mic activo');
+    } catch {
+      alert('Permiso de micrófono denegado');
+    }
+  });
+  document.getElementById('videoBtn').addEventListener('click', async () => {
+    try {
+      await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      alert('Videollamada iniciada (simulación): cam y mic activos');
+    } catch {
+      alert('Permiso de cámara y micrófono denegado');
+    }
+  });
+
+  // ---------- PROFILE PHOTO CHANGE ----------
+  const profilePhoto = document.getElementById('profilePhoto');
+  let fileInputProfile = document.createElement('input');
+  fileInputProfile.type = 'file';
+  fileInputProfile.accept = 'image/*';
+  fileInputProfile.style.display = 'none';
+  document.body.appendChild(fileInputProfile);
+
+  profilePhoto.addEventListener('click', () => fileInputProfile.click());
+  fileInputProfile.addEventListener('change', () => {
+    const file = fileInputProfile.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => document.getElementById('profilePic').src = e.target.result;
+      reader.readAsDataURL(file);
+    }
+  });
+
+  // small accessibility: announce new messages
+  const observer = new MutationObserver(() => {
+    // called when chatArea changes - optionally do something
+  });
+  observer.observe(chatArea, { childList: true });
+
+  // ---------- inicial scroll ----------
+  scrollChat();
+
+  // ---------- FIN ----------
+</script>
+
+</body>
+</html>

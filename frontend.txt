@@ -1,0 +1,6 @@
+- index.html: estructura del chat con header, chat area, footer, botones y paneles laterales.
+- styles.css: estilos para diseño responsive, mensajes, botones y animaciones.
+- firebaseConfig.js: configuración e inicialización Firebase.
+- User.js: funciones auxiliares (copiar texto, manipulación UI).
+- message.js: funciones para enviar y escuchar mensajes en Firebase Realtime Database.
+- main.js: controla interacción UI, eventos botón enviar, cambiar chats, cargar mensajes en vista, reproducción de sonido notificación y estados varios.

@@ -1,0 +1,34 @@
+// models.js - Modelos básicos de datos para chat Firebase Realtime Database
+
+// Modelo Usuario
+class Usuario {
+  constructor(id, nombre, estado, fotoPerfil) {
+    this.id = id; // string: UID Firebase u otro identificador único
+    this.nombre = nombre; // string: nombre visible
+    this.estado = estado; // string: estado ("en línea", "ocupado", etc.)
+    this.fotoPerfil = fotoPerfil; // string: URL imagen perfil
+  }
+}
+
+// Modelo Mensaje
+class Mensaje {
+  constructor(id, texto, remitenteId, timestamp, tipo = 'texto') {
+    this.id = id; // string: ID mensaje (push key Firebase)
+    this.texto = texto; // string: contenido del mensaje (o URL imagen)
+    this.remitenteId = remitenteId; // string: ID del usuario que envió
+    this.timestamp = timestamp; // number: timestamp para orden
+    this.tipo = tipo; // string: 'texto', 'imagen', 'archivo', 'ubicacion', etc.
+  }
+}
+
+// Modelo Chat
+class Chat {
+  constructor(id, miembros, ultimoMensaje, mensajes = []) {
+    this.id = id; // string: ID del chat (push key o UID generado)
+    this.miembros = miembros; // array de IDs usuarios [{idUsuario1, idUsuario2}]
+    this.ultimoMensaje = ultimoMensaje; // instancia de Mensaje o resumen
+    this.mensajes = mensajes; // array de Mensajes (opcional para carga parcial)
+  }
+}
+
+export { Usuario, Mensaje, Chat };

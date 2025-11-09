@@ -1,0 +1,24 @@
+// db.js - Inicialización y exportación de instancia Firebase Realtime Database
+
+import { initializeApp } from 'firebase/app';
+import { getDatabase } from 'firebase/database';
+
+// Tu configuración Firebase (reemplaza los valores por los tuyos)
+const firebaseConfig = {
+  apiKey: "AIzaSyBGx3GHWa_g_Owo3qbfjempjyl9a4TK7mc",
+  authDomain: "chatyumi.firebaseapp.com",
+  databaseURL: "https://chatyumi-default-rtdb.firebaseio.com",
+  projectId: "chatyumi",
+  storageBucket: "chatyumi.firebasestorage.app",
+  messagingSenderId: "1037739159203",
+  appId: "1:1037739159203:web:8c4373ca51e70835e2d916",
+  measurementId: "G-6ZH85FEJ6L"
+};
+
+// Inicializa Firebase
+const app = initializeApp(firebaseConfig);
+
+// Obtén la referencia a la base de datos en tiempo real
+const db = getDatabase(app);
+
+export { db };

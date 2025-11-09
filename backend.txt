@@ -1,0 +1,53 @@
+// backend.js - ejemplo de backend Node.js con Express y Firebase Admin SDK
+
+const express = require('express');
+const admin = require('firebase-admin');
+
+const app = express();
+const port = process.env.PORT || 3000;
+
+// Inicializa Firebase Admin con archivo de cuenta de servicio (pon tu ruta)
+admin.initializeApp({
+  credential: admin.credential.cert(require('./serviceAccountKey.json')),
+  databaseURL: 'https://chatyumi-default-rtdb.firebaseio.com'
+});
+
+const db = admin.database();
+
+app.use(express.json());
+
+// Endpoint para obtener usuarios
+app.get('/api/users', async (req, res) => {
+  try {
+    const usersSnapshot = await db.ref('usuarios').once('value');
+    const users = usersSnapshot.val();
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener usuarios' });
+  }
+});
+
+// Endpoint para enviar mensaje (puedes validar y agregar lógica extra)
+app.post('/api/messages/:chatId', async (req, res) => {
+  const chatId = req.params.chatId;
+  const { texto, remitenteId } = req.body;
+  if (!texto || !remitenteId) {
+    return res.status(400).json({ error: 'Faltan parámetros obligatorios' });
+  }
+  try {
+    const mensajeRef = db.ref(`mensajes/${chatId}`).push();
+    await mensajeRef.set({
+      texto,
+      remitenteId,
+      timestamp: Date.now(),
+      tipo: 'texto'
+    });
+    res.json({ mensajeId: mensajeRef.key, success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'No se pudo enviar el mensaje' });
+  }
+});
+
+app.listen(port, () => {
+  console.log(`Backend corriendo en http://localhost:${port}`);
+});
