@@ -6,752 +6,802 @@
 <title>WhatsApp Realista Chat App</title>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
 <style>
-  body {
-    margin: 0;
-    font-family: "Segoe UI", sans-serif;
-    background-color: #ece5dd;
-    overflow: hidden;
-    height: 100vh;
-    width: 100vw;
+  /* === Estilos: idéntico diseño visual pedido === */
+  :root {
+    --header-bg: #075e54;
+    --accent: #25d366;
+    --chat-bg: #dcf8c6;
   }
-  .app {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    height: 100%;
-    max-width: 1600px;
-    margin: 0 auto;
-    position: relative;
-    background-color: #fff;
-  }
+  html,body{height:100%;margin:0;font-family:"Segoe UI",Arial,sans-serif;background:#ece5dd}
+  .app { display:flex; flex-direction:column; width:100%; height:100vh; max-width:1600px; margin:0 auto; background:#fff; position:relative; }
+  .header { background:var(--header-bg); color:#fff; display:flex; align-items:center; justify-content:space-between; padding:12px; z-index:50; }
+  .header .chat-info { display:flex; align-items:center; cursor:pointer; }
+  .header img { width:45px; height:45px; border-radius:50%; margin-right:10px; object-fit:cover; }
+  .header .actions i { margin-left:15px; cursor:pointer; color:white; user-select:none; }
 
-  /* Header */
-  .header {
-    background-color: #075e54;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px;
-    position: relative;
-    z-index: 50;
-  }
-  .header .chat-info {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-  }
-  .header img {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    margin-right: 10px;
-    object-fit: cover;
-  }
-  .header .actions i {
-    margin-left: 15px;
-    cursor: pointer;
-    color: white;
-    user-select: none;
-  }
+  .config-menu { display:none; position:absolute; top:60px; right:10px; background:#fff; border:1px solid #ccc; border-radius:8px; width:260px; box-shadow:0 4px 8px rgba(0,0,0,0.3); z-index:100; padding:10px; color:#222 }
+  .config-menu h4{ margin:6px 0 8px; color:var(--header-bg) }
+  .config-menu label{ display:block; font-size:13px; color:#333; margin-top:8px }
+  .config-menu input[type="text"], .config-menu input[type="password"], .config-menu input[type="url"]{ width:100%; padding:8px; margin-top:6px; border-radius:6px; border:1px solid #ddd; box-sizing:border-box }
 
-  /* Menu configuración */
-  .config-menu {
-    display: none;
-    position: absolute;
-    top: 60px;
-    right: 10px;
-    background: #fff;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    width: 180px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-    z-index: 100;
-  }
-  .config-menu div {
-    padding: 10px 14px;
-    cursor: pointer;
-    color: #075e54;
-    font-weight: 500;
-  }
-  .config-menu div:hover {
-    background-color: #f0f0f0;
-  }
+  .overlay{ position:fixed; inset:0; background:rgba(0,0,0,0.9); display:flex; align-items:center; justify-content:center; z-index:9999 }
+  .auth-box{ background:#1f1f1f; color:#fff; padding:20px; border-radius:12px; width:340px; box-shadow:0 6px 24px rgba(0,0,0,.6) }
+  .auth-box h2{ margin:0 0 8px }
+  .auth-box input{ width:100%; padding:10px; margin:8px 0; border-radius:8px; border:none; box-sizing:border-box }
+  .btn{ display:inline-block; background:var(--accent); color:#000; padding:10px; border-radius:8px; border:none; width:100%; font-weight:700; cursor:pointer }
+  .link{ color:#bbb; margin-top:8px; cursor:pointer; text-align:center }
 
-  /* Chat area */
-  .chat-area {
-    flex: 1;
-    background-color: #dcf8c6;
-    padding: 10px;
-    padding-bottom: 90px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    scroll-behavior: smooth;
-  }
+  .chat-area { flex:1; background:var(--chat-bg); padding:10px; padding-bottom:120px; overflow-y:auto; display:flex; flex-direction:column; }
+  .message{ background:#fff; padding:10px 14px; margin:6px; border-radius:10px; max-width:70%; word-break:break-word; box-shadow:0 1px 3px rgba(0,0,0,0.2); position:relative; }
+  .message.sent{ align-self:flex-end; background:#dcf8c6 }
+  .message.received{ align-self:flex-start; background:#fff }
 
-  /* Mensajes */
-  .message {
-    background-color: #fff;
-    padding: 10px 14px;
-    margin: 6px;
-    border-radius: 10px;
-    max-width: 70%;
-    word-break: break-word;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-    opacity: 0;
-    transform: translateY(20px) scale(0.95);
-    animation: fadeInUp 0.4s forwards, bounce 0.4s ease;
-    position: relative;
-  }
-  @keyframes fadeInUp {
-    to {opacity: 1; transform: translateY(0) scale(1);}
-  }
-  @keyframes bounce {
-    0% {transform: translateY(20px) scale(0.95);}
-    50% {transform: translateY(-5px) scale(1.02);}
-    100% {transform: translateY(0) scale(1);}
-  }
-  .message.sent {
-    align-self: flex-end;
-    background-color: #dcf8c6;
-  }
-  .message.received {
-    align-self: flex-start;
-    background-color: #fff;
-  }
-  .message img {
-    max-width: 200px;
-    border-radius: 8px;
-    display: block;
-    margin-top: 5px;
-  }
-  .file-msg {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    background-color: #e8f5e9;
-    padding: 5px 8px;
-    border-radius: 6px;
-  }
+  .footer{ position:fixed; bottom:0; left:0; width:100%; background:var(--header-bg); display:flex; align-items:center; padding:6px 8px; gap:6px; z-index:100; box-sizing:border-box }
+  .footer .icon-btn{ background:var(--header-bg); color:white; font-size:26px; padding:10px; border-radius:50%; border:none; display:flex; align-items:center; justify-content:center; cursor:pointer }
+  .footer input#messageInput{ flex:1; min-width:0; border:none; border-radius:20px; padding:8px 12px; background:#f0f0f0; outline:none; font-size:14px }
 
-  /* AUDIO BUBBLE (estilo tipo WhatsApp) */
-  .audio-bubble {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: transparent;
-  }
-  .audio-player {
-    display:flex;
-    align-items:center;
-    gap:10px;
-    background:#e6f3ea;
-    padding:6px 10px;
-    border-radius:20px;
-    max-width:320px;
-    width:100%;
-  }
-  .audio-play {
-    width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:none;background:transparent;cursor:pointer;font-size:20px;color:#075e54;
-  }
-  .audio-progress {flex:1;height:6px;background:#dcdcdc;border-radius:6px;overflow:hidden;position:relative;cursor:pointer}
-  .audio-progress .bar{height:100%;width:0;background:#25d366;transition:width 0.1s linear}
-  .audio-duration{font-size:12px;color:#333;min-width:40px;text-align:right}
-  .audio-wave{display:inline-block;width:28px;height:12px;background:linear-gradient(90deg,#25d366 #25d366);opacity:0.15;border-radius:4px}
+  .fab{ position:fixed; bottom:90px; right:20px; width:60px; height:60px; font-size:32px; background:var(--accent); color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 8px rgba(0,0,0,0.3); z-index:200 }
 
-  /* Map link style */
-  .map-link {
-    display:inline-flex;
-    gap:10px;
-    align-items:center;
-    background:#eef7ff;
-    padding:8px;
-    border-radius:12px;
-    text-decoration:none;
-    color:#075e54;
-    border:1px solid rgba(0,0,0,0.05);
-  }
+  .contacts-panel{ position:fixed; top:0; right:-360px; width:360px; height:100%; background:#fff; box-shadow:-3px 0 8px rgba(0,0,0,0.3); transition:right .28s; z-index:150; overflow-y:auto; padding-bottom:80px }
+  .contacts-panel.active{ right:0 }
+  .contacts-panel h3{ padding:15px; border-bottom:1px solid #ccc; margin:0 }
+  .contacts-panel .contact{ padding:12px; border-bottom:1px solid #eee; display:flex; gap:10px; align-items:center; cursor:pointer }
+  .contacts-panel .contact img{ width:44px; height:44px; border-radius:50%; object-fit:cover }
 
-  /* Escribiendo */
-  .typing {
-    font-style: italic;
-    color: #555;
-    font-size: 14px;
-    margin: 5px 6px;
-    align-self: flex-start;
-    animation: blink 1s infinite;
-  }
-  @keyframes blink {
-    0%,50%,100% {opacity: 1;}
-    25%,75% {opacity: 0;}
-  }
+  @media(max-width:768px){ .contacts-panel{ width:85% } .fab{ bottom:80px; right:12px; width:50px; height:50px } }
 
-  /* Footer con botones dinámicos */
-  .footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background-color: #075e54; /* mism color verde oscuro del header */
-    display: flex;
-    align-items: center;
-    padding: 6px 8px;
-    border-top: 1px solid #ccc;
-    gap: 6px;
-    z-index: 100;
-    flex-wrap: nowrap;
-    box-sizing: border-box;
-    overflow-x: auto;
-    transition: transform 0.3s ease;
-  }
-  .footer.hidden {
-    transform: translateY(120%);
-  }
-
-  .footer .icon-btn {
-    background-color: #075e54; /* verde oscuro igual que header */
-    color: white;
-    font-size: 26px;
-    cursor: pointer;
-    padding: 10px;
-    border-radius: 50%;
-    border: none;
-    transition: background 0.3s;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    user-select: none;
-  }
-  .footer .icon-btn:hover {
-    background-color: #094b43;
-  }
-
-  .footer input#messageInput {
-    flex: 1 1 auto;
-    min-width: 0;
-    border: none;
-    border-radius: 20px;
-    padding: 8px 12px;
-    background-color: #f0f0f0;
-    outline: none;
-    font-size: 14px;
-    box-sizing: border-box;
-    white-space: nowrap;
-  }
-
-  /* Botón flotante contactos */
-  .fab {
-    position: fixed;
-    bottom: 90px;
-    right: 20px;
-    width: 60px;
-    height: 60px;
-    font-size: 32px;
-    background-color: #25d366;
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-    transition: background 0.3s;
-    z-index: 200;
-    user-select: none;
-  }
-  .fab:hover {
-    background-color: #1ebe5d;
-  }
-
-  /* Panel contactos lateral */
-  .contacts-panel {
-    position: fixed;
-    top: 0;
-    right: -300px;
-    width: 300px;
-    height: 100%;
-    background: #fff;
-    box-shadow: -3px 0 8px rgba(0,0,0,0.3);
-    transition: right 0.3s ease;
-    z-index: 150;
-    overflow-y: auto;
-  }
-  .contacts-panel.active {
-    right: 0;
-  }
-  .contacts-panel h3 {
-    padding: 15px;
-    border-bottom: 1px solid #ccc;
-    margin: 0;
-  }
-  .contacts-panel .contact {
-    padding: 12px;
-    border-bottom: 1px solid #eee;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    user-select: none;
-  }
-  .contacts-panel .contact img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    margin-right: 10px;
-    object-fit: cover;
-  }
-  .contacts-panel .contact:hover {
-    background-color: #f0f0f0;
-  }
-
-  /* Última conexión (status) */
-  .status-small {
-    font-size: 12px;
-    color: #cfcfcf;
-  }
-
-  /* Responsive */
-  @media (max-width: 768px) {
-    .footer .icon-btn {
-      font-size: 24px;
-      padding: 8px;
-    }
-    .footer input#messageInput {
-      font-size: 13px;
-    }
-    .fab {
-      width: 50px;
-      height: 50px;
-      font-size: 26px;
-      bottom: 80px;
-    }
-    .contacts-panel {
-      width: 70%;
-    }
-  }
-  @media (max-width: 400px) {
-    .footer {
-      overflow-x: auto;
-    }
-    .footer .icon-btn {
-      font-size: 22px;
-      padding: 8px;
-    }
-  }
+  /* upload overlay (robusto) */
+  #uploadOverlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); display:none; align-items:center; justify-content:center; z-index:10000; color:#fff; flex-direction:column; }
+  .spinner { border:4px solid rgba(255,255,255,0.2); border-top:4px solid var(--accent); border-radius:50%; width:48px; height:48px; animation:spin 1s linear infinite; margin-bottom:12px }
+  @keyframes spin { to{ transform:rotate(360deg) } }
+  /* small form within contacts panel */
+  .contacts-panel .add-form { padding:12px; border-top:1px solid #eee; display:flex; flex-direction:column; gap:8px }
+  .contacts-panel .add-form input { padding:8px; border:1px solid #ddd; border-radius:8px; width:100%; box-sizing:border-box }
+  .contacts-panel .add-form .row { display:flex; gap:8px; align-items:center }
+  .contacts-panel .country-select { display:flex; gap:8px; align-items:center; }
+  .country-select select { padding:8px; border-radius:8px; border:1px solid #ddd; background:#fff }
+  .flag { font-size:18px; margin-right:6px; }
 </style>
 </head>
 <body>
 
+<!-- AUDIO -->
 <audio id="notifySound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 <audio id="sendSound" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" preload="auto"></audio>
 
-<div class="app">
-
-  <!-- Header -->
-  <div class="header">
-    <div class="chat-info" id="profilePhoto">
-      <img src="https://i.pravatar.cc/50" alt="Contacto" id="profilePic" title="Click para cambiar foto de perfil" />
-      <div>
-        <strong id="chatName">Contacto</strong><br />
-        <small class="status-small" id="chatStatus">en línea</small>
-      </div>
-    </div>
-    <div class="actions">
-      <i class="material-icons" id="callBtn" title="Llamada">call</i>
-      <i class="material-icons" id="videoBtn" title="Videollamada">videocam</i>
-      <i class="material-icons" id="configBtn" title="Configuración">more_vert</i>
-      <div class="config-menu" id="configMenu">
-        <div onclick="alert('Perfil')">Perfil</div>
-        <div onclick="alert('Fondo de chat')">Fondo de chat</div>
-        <div onclick="alert('Notificaciones')">Notificaciones</div>
-        <div onclick="alert('Cerrar menú')">Cerrar menú</div>
-      </div>
-    </div>
+<!-- LOGIN / REGISTER OVERLAYS -->
+<div id="loginScreen" class="overlay">
+  <div class="auth-box">
+    <h2>Iniciar Sesión</h2>
+    <input id="loginEmail" type="email" placeholder="Correo electrónico" />
+    <input id="loginPassword" type="password" placeholder="Contraseña" />
+    <button id="loginBtn" class="btn">Iniciar sesión</button>
+    <button id="googleSignInBtn" class="btn" style="margin-top:8px;background:#4285F4;color:#fff">Iniciar con Google</button>
+    <div class="link" id="goToRegister">¿No tienes cuenta? Regístrate</div>
   </div>
-
-  <!-- Chat area -->
-  <div class="chat-area" id="chatArea" aria-live="polite">
-    <div class="message received">¡Hola! 😊</div>
-    <div class="message sent">¡Hola! ¿Cómo estás?</div>
-    <!-- Typing indicator -->
-    <div class="typing" id="typingIndicator" style="display:none;">escribiendo...</div>
-  </div>
-
-  <!-- Footer -->
-  <div class="footer" id="footer">
-    <button class="icon-btn" id="emojiBtn" title="Emojis"><i class="material-icons">emoji_emotions</i></button>
-    <button class="icon-btn" id="photoBtn" title="Enviar foto"><i class="material-icons">photo_camera</i></button>
-    <button class="icon-btn" id="fileBtn" title="Adjuntar archivo"><i class="material-icons">attach_file</i></button>
-    <button class="icon-btn" id="locationBtn" title="Enviar ubicación"><i class="material-icons">location_on</i></button>
-
-    <input type="text" id="messageInput" placeholder="Escribe un mensaje..." aria-label="Escribir mensaje" />
-    
-    <button class="icon-btn" id="sendBtn" title="Enviar mensaje"><i class="material-icons">send</i></button>
-    <button class="icon-btn" id="micBtn" title="Enviar nota de voz"><i class="material-icons" id="micIcon">mic</i></button>
-  </div>
-
-  <!-- Hidden inputs for file/photo -->
-  <input type="file" id="fileInput" multiple hidden />
-  <input type="file" id="photoInput" accept="image/*" capture="environment" hidden />
-
-  <!-- Floating contacts button -->
-  <div class="fab" id="contactsBtn" title="Contactos"><i class="material-icons">contacts</i></div>
-
-  <!-- Contacts panel -->
-  <div class="contacts-panel" id="contactsPanel" aria-label="Panel de contactos">
-    <h3>Mis Contactos</h3>
-    <div class="contact" data-name="Juan" data-status="en línea">
-      <img src="https://i.pravatar.cc/50?img=1" alt="Juan" />
-      Juan
-    </div>
-    <div class="contact" data-name="María" data-status="ocupado">
-      <img src="https://i.pravatar.cc/50?img=2" alt="María" />
-      María
-    </div>
-    <div class="contact" data-name="Carlos" data-status="en línea">
-      <img src="https://i.pravatar.cc/50?img=3" alt="Carlos" />
-      Carlos
-    </div>
-    <div class="contact" data-name="Ana" data-status="en línea">
-      <img src="https://i.pravatar.cc/50?img=4" alt="Ana" />
-      Ana
-    </div>
-  </div>
-
 </div>
 
-<script>
-  // ---------- ELEMENTOS ----------
+<div id="registerScreen" class="overlay" style="display:none;">
+  <div class="auth-box">
+    <h2>Crear Cuenta</h2>
+    <input id="regName" type="text" placeholder="Nombre (visible)" />
+    <input id="regEmail" type="email" placeholder="Correo electrónico" />
+    <input id="regPassword" type="password" placeholder="Contraseña (mín. 6)" />
+    <button id="registerBtn" class="btn">Crear cuenta</button>
+    <div class="link" id="goToLogin">¿Ya tienes cuenta? Inicia sesión</div>
+  </div>
+</div>
+
+<!-- UPLOAD / PROCESSING OVERLAY (robusto) -->
+<div id="uploadOverlay" role="status" aria-hidden="true">
+  <div class="spinner"></div>
+  <div id="uploadOverlayText" style="font-weight:700">Procesando...</div>
+</div>
+
+<!-- APP (oculto hasta login exitoso) -->
+<div id="appRoot" style="display:none;height:100vh;">
+  <div class="app">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="chat-info" id="profilePhoto" title="Cambiar foto">
+        <img src="https://i.pravatar.cc/50" alt="Contacto" id="profilePic" />
+        <div>
+          <strong id="chatName">Contacto</strong><br />
+          <small class="status-small" id="chatStatus">en línea</small>
+        </div>
+      </div>
+      <div class="actions">
+        <i class="material-icons" id="callBtn" title="Llamada">call</i>
+        <i class="material-icons" id="videoBtn" title="Videollamada">videocam</i>
+        <i class="material-icons" id="configBtn" title="Ajustes" style="font-size:28px">settings</i>
+
+        <div class="config-menu" id="configMenu" aria-hidden="true">
+          <h4>Ajustes</h4>
+          <label for="changeName">Cambiar nombre</label>
+          <input id="changeName" type="text" placeholder="Tu nombre" />
+          <label for="changePhoto">Cambiar foto (URL)</label>
+          <input id="changePhoto" type="url" placeholder="https://..." />
+          <label style="margin-top:8px">O subir foto</label>
+          <input id="changePhotoFile" type="file" accept="image/*" />
+          <label for="changePassword">Nueva contraseña</label>
+          <input id="changePassword" type="password" placeholder="Nueva contraseña" />
+          <div class="row" style="display:flex;gap:8px;margin-top:10px">
+            <button id="saveProfileBtn" style="flex:1;padding:8px;border-radius:8px;border:none;background:var(--accent);font-weight:700">Guardar</button>
+            <button id="signOutBtn" style="flex:1;padding:8px;border-radius:8px;border:none;background:#f44336;color:#fff">Salir</button>
+          </div>
+          <small style="display:block;margin-top:8px;color:#666">Cambiar contraseña puede requerir volver a iniciar sesión si Firebase lo solicita.</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat area -->
+    <div class="chat-area" id="chatArea" aria-live="polite">
+      <div class="message received">¡Hola! 😊</div>
+      <div class="message sent">¡Hola! ¿Cómo estás?</div>
+      <div class="typing" id="typingIndicator" style="display:none;">escribiendo...</div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer" id="footer">
+      <button class="icon-btn" id="emojiBtn" title="Emojis"><i class="material-icons">emoji_emotions</i></button>
+      <button class="icon-btn" id="photoBtn" title="Enviar foto"><i class="material-icons">photo_camera</i></button>
+      <button class="icon-btn" id="fileBtn" title="Adjuntar archivo"><i class="material-icons">attach_file</i></button>
+      <button class="icon-btn" id="locationBtn" title="Enviar ubicación"><i class="material-icons">location_on</i></button>
+
+      <input type="text" id="messageInput" placeholder="Escribe un mensaje..." aria-label="Escribir mensaje" />
+
+      <button class="icon-btn" id="sendBtn" title="Enviar mensaje"><i class="material-icons">send</i></button>
+      <button class="icon-btn" id="micBtn" title="Enviar nota de voz"><i class="material-icons" id="micIcon">mic</i></button>
+    </div>
+
+    <input type="file" id="fileInput" multiple hidden />
+    <input type="file" id="photoInput" accept="image/*" capture="environment" hidden />
+
+    <div class="fab" id="contactsBtn" title="Contactos"><i class="material-icons">contacts</i></div>
+
+    <div class="contacts-panel" id="contactsPanel" aria-label="Panel de contactos">
+      <h3>Mis Contactos</h3>
+      <div id="contactsList"></div>
+
+      <!-- FORMULARIO: ahora guarda solo nombre + teléfono (estilo WhatsApp) -->
+      <div class="add-form" aria-label="Agregar contacto">
+        <input id="addContactName" placeholder="Nombre del contacto" />
+        <div class="row">
+          <div class="country-select" style="flex:1">
+            <select id="countrySelect" title="Selecciona país"></select>
+          </div>
+          <input id="addContactPhone" placeholder="Número (ej. 987654321)" />
+        </div>
+        <button id="addContactBtn" style="width:100%;margin-top:4px;padding:8px;border-radius:8px;border:none;background:var(--accent);color:#000;font-weight:700">Agregar contacto</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Firebase SDK + App logic -->
+<script type="module">
+  // ---------- FIREBASE IMPORTS ----------
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getAuth,
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    signInWithPopup,
+    GoogleAuthProvider,
+    signOut,
+    onAuthStateChanged,
+    updateProfile,
+    updatePassword
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import {
+    getDatabase,
+    ref as dbRef,
+    set as dbSet,
+    push as dbPush,
+    onValue,
+    get,
+    child,
+    update as dbUpdate
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+  import {
+    getStorage,
+    ref as storageRef,
+    uploadBytes,
+    getDownloadURL
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+  // ---------- FIREBASE CONFIG (tu configuración) ----------
+  const firebaseConfig = {
+    apiKey: "AIzaSyBGx3GHWa_g_Owo3qbfjempjyl9a4TK7mc",
+    authDomain: "chatyumi.firebaseapp.com",
+    databaseURL: "https://chatyumi-default-rtdb.firebaseio.com",
+    projectId: "chatyumi",
+    storageBucket: "chatyumi.appspot.com",
+    messagingSenderId: "1037739159203",
+    appId: "1:1037739159203:web:8c4373ca51e70835e2d916",
+    measurementId: "G-6ZH85FEJ6L"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getDatabase(app);
+  const storage = getStorage(app);
+  const googleProvider = new GoogleAuthProvider();
+
+  // ---------- DOM refs ----------
+  const loginScreen = document.getElementById('loginScreen');
+  const registerScreen = document.getElementById('registerScreen');
+  const uploadOverlay = document.getElementById('uploadOverlay');
+  const uploadOverlayText = document.getElementById('uploadOverlayText');
+  const appRoot = document.getElementById('appRoot');
+
+  const loginEmail = document.getElementById('loginEmail');
+  const loginPassword = document.getElementById('loginPassword');
+  const loginBtn = document.getElementById('loginBtn');
+  const googleSignInBtn = document.getElementById('googleSignInBtn');
+
+  const regName = document.getElementById('regName');
+  const regEmail = document.getElementById('regEmail');
+  const regPassword = document.getElementById('regPassword');
+  const registerBtn = document.getElementById('registerBtn');
+
   const configBtn = document.getElementById('configBtn');
   const configMenu = document.getElementById('configMenu');
-  const contactsBtn = document.getElementById('contactsBtn');
-  const contactsPanel = document.getElementById('contactsPanel');
+  const saveProfileBtn = document.getElementById('saveProfileBtn');
+  const signOutBtn = document.getElementById('signOutBtn');
+  const changeName = document.getElementById('changeName');
+  const changePhoto = document.getElementById('changePhoto');
+  const changePhotoFile = document.getElementById('changePhotoFile');
+  const changePassword = document.getElementById('changePassword');
+
+  const profilePic = document.getElementById('profilePic');
+  const chatName = document.getElementById('chatName');
+  const chatStatus = document.getElementById('chatStatus');
+
   const chatArea = document.getElementById('chatArea');
   const messageInput = document.getElementById('messageInput');
-  const notifySound = document.getElementById('notifySound');
-  const sendSound = document.getElementById('sendSound');
-  const micBtn = document.getElementById('micBtn');
-  const micIcon = document.getElementById('micIcon');
-  const locationBtn = document.getElementById('locationBtn');
+  const sendBtn = document.getElementById('sendBtn');
   const photoBtn = document.getElementById('photoBtn');
   const photoInput = document.getElementById('photoInput');
   const fileBtn = document.getElementById('fileBtn');
   const fileInput = document.getElementById('fileInput');
-  const sendBtn = document.getElementById('sendBtn');
-  const typingIndicator = document.getElementById('typingIndicator');
+  const locationBtn = document.getElementById('locationBtn');
+  const micBtn = document.getElementById('micBtn');
+  const micIcon = document.getElementById('micIcon');
 
-  // ---------- CONFIG MENU ----------
-  configBtn.addEventListener('click', () => {
-    configMenu.style.display = configMenu.style.display === 'block' ? 'none' : 'block';
-  });
-  document.addEventListener('click', (e) => {
-    if (!configMenu.contains(e.target) && e.target !== configBtn) configMenu.style.display = 'none';
+  const contactsBtn = document.getElementById('contactsBtn');
+  const contactsPanel = document.getElementById('contactsPanel');
+  const contactsList = document.getElementById('contactsList');
+  const addContactName = document.getElementById('addContactName');
+  const addContactPhone = document.getElementById('addContactPhone');
+  const addContactBtn = document.getElementById('addContactBtn');
+  const countrySelect = document.getElementById('countrySelect');
+
+  // ---------- Helpers UI ----------
+  function setOverlayText(t){ uploadOverlayText.textContent = t || 'Procesando...'; }
+  // Robust overlay: contador + watchdog
+  let __uploadOverlayCount = 0;
+  let __uploadOverlayTimer = null;
+  const __UPLOAD_WATCHDOG_MS = 60_000;
+  function showUpload(msg="Procesando..."){ try {
+      __uploadOverlayCount++;
+      setOverlayText(msg);
+      uploadOverlay.style.display = 'flex';
+      uploadOverlay.setAttribute('aria-hidden','false');
+      uploadOverlay.style.pointerEvents = 'auto';
+      if(__uploadOverlayTimer) clearTimeout(__uploadOverlayTimer);
+      __uploadOverlayTimer = setTimeout(()=> {
+        console.warn('Upload overlay watchdog triggered — hiding overlay.');
+        __uploadOverlayCount = 0;
+        hideUpload(true);
+      }, __UPLOAD_WATCHDOG_MS);
+    } catch(e){ console.error('showUpload error', e); } }
+  function hideUpload(force=false){ try {
+      if(!force) __uploadOverlayCount = Math.max(0, __uploadOverlayCount-1);
+      else __uploadOverlayCount = 0;
+      if(__uploadOverlayCount === 0){
+        uploadOverlay.style.display = 'none';
+        uploadOverlay.setAttribute('aria-hidden','true');
+        uploadOverlay.style.pointerEvents='none';
+        if(__uploadOverlayTimer) { clearTimeout(__uploadOverlayTimer); __uploadOverlayTimer = null; }
+      }
+    } catch(e){ console.error('hideUpload error', e); } }
+  window.addEventListener('unhandledrejection', (ev)=>{ console.error('Unhandled rejection:', ev.reason); hideUpload(true); });
+  window.addEventListener('error', (ev)=>{ console.error('Global error:', ev.message||ev); hideUpload(true); });
+
+  function normalizeEmail(e){ return (e||'').trim().toLowerCase(); }
+  function sanitizeEmail(email){ return (email||'').trim().toLowerCase().replace(/[.#$\[\]]/g, '_'); }
+
+  // phone normalization for keys and presentation
+  function normalizePhone(p){
+    if(!p) return '';
+    // remove spaces, parentheses, hyphens, dots
+    let s = p.replace(/[()\s.-]/g,'');
+    // if user typed local number without leading +country, we assume countrySelect will provide country code
+    return s;
+  }
+  function buildE164(countryDial, localNumber){
+    // countryDial like +593, localNumber digits
+    const onlyDigits = (localNumber||'').replace(/[^\d]/g,'');
+    // remove leading zeros if user typed them (common)
+    const normalizedLocal = onlyDigits.replace(/^0+/, '');
+    return `${countryDial}${normalizedLocal}`; // e.g. +593987654321
+  }
+  function sanitizePhoneKey(p){
+    // keep + and digits only for key
+    return (p||'').replace(/[^\d\+]/g,'');
+  }
+
+  function playSendSound(){ const s=document.getElementById('sendSound'); s.currentTime=0; s.play().catch(()=>{}); }
+  function playNotify(){ const s=document.getElementById('notifySound'); s.currentTime=0; s.play().catch(()=>{}); }
+  function scrollChat(){ chatArea.scrollTop = chatArea.scrollHeight; }
+
+  // ---------- Country list (small set, puedes ampliar) ----------
+  const COUNTRIES = [
+    { code: "EC", name: "Ecuador", dial: "+593", flag: "🇪🇨", placeholder: "987654321" },
+    { code: "MX", name: "México", dial: "+52", flag: "🇲🇽", placeholder: "987654321" },
+    { code: "ES", name: "España", dial: "+34", flag: "🇪🇸", placeholder: "612345678" },
+    { code: "US", name: "Estados Unidos", dial: "+1", flag: "🇺🇸", placeholder: "5555555555" },
+    { code: "CO", name: "Colombia", dial: "+57", flag: "🇨🇴", placeholder: "3123456789" },
+    { code: "PE", name: "Perú", dial: "+51", flag: "🇵🇪", placeholder: "987654321" },
+    { code: "AR", name: "Argentina", dial: "+54", flag: "🇦🇷", placeholder: "91123456789" },
+    { code: "CL", name: "Chile", dial: "+56", flag: "🇨🇱", placeholder: "912345678" }
+  ];
+
+  function populateCountrySelect(){
+    countrySelect.innerHTML = '';
+    COUNTRIES.forEach((c, idx)=>{
+      const opt = document.createElement('option');
+      opt.value = idx; // index for easy lookup
+      opt.textContent = `${c.flag} ${c.name} ${c.dial}`;
+      countrySelect.appendChild(opt);
+    });
+    countrySelect.selectedIndex = 0;
+    updatePhonePlaceholder();
+  }
+  function updatePhonePlaceholder(){
+    const c = COUNTRIES[countrySelect.value || 0];
+    addContactPhone.placeholder = c ? c.placeholder : '987654321';
+  }
+  countrySelect.addEventListener('change', updatePhonePlaceholder);
+  populateCountrySelect();
+
+  // ---------- Auth UI navigation ----------
+  document.getElementById('goToRegister').onclick = ()=> { loginScreen.style.display='none'; registerScreen.style.display='flex'; };
+  document.getElementById('goToLogin').onclick = ()=> { registerScreen.style.display='none'; loginScreen.style.display='flex'; };
+
+  // ---------- Register ----------
+  registerBtn.addEventListener('click', async () => {
+    const name = regName.value.trim() || 'Usuario';
+    const emailRaw = regEmail.value || '';
+    const email = normalizeEmail(emailRaw);
+    const pass = regPassword.value || '';
+    if(!email || !pass) return alert('Ingresa email y contraseña.');
+    if(pass.length < 6) return alert('La contraseña debe tener al menos 6 caracteres.');
+    try {
+      showUpload('Creando cuenta...');
+      const cred = await createUserWithEmailAndPassword(auth, email, pass);
+      const user = cred.user;
+      await updateProfile(user, { displayName: name, photoURL: `https://i.pravatar.cc/150?u=${encodeURIComponent(email)}` });
+      // Save users by uid
+      await dbSet(dbRef(db, `users/${user.uid}`), { uid:user.uid, name, email, photo:user.photoURL||null, createdAt: Date.now() });
+      // Save mapping email -> uid using canonical sanitize
+      await dbSet(dbRef(db, `emails/${sanitizeEmail(email)}`), user.uid);
+      alert('Cuenta creada. Inicia sesión.');
+      registerScreen.style.display='none';
+      loginScreen.style.display='flex';
+    } catch (err) {
+      console.error(err);
+      const msg = (err && err.code) ? {
+        'auth/email-already-in-use': 'El correo ya está en uso.',
+        'auth/invalid-email': 'Correo inválido.',
+        'auth/weak-password': 'Contraseña débil.'
+      }[err.code] : err.message || 'Error creando cuenta';
+      alert(msg);
+    } finally { hideUpload(); }
   });
 
-  // ---------- CONTACTS PANEL ----------
-  contactsBtn.addEventListener('click', () => contactsPanel.classList.toggle('active'));
-  contactsPanel.querySelectorAll('.contact').forEach(contact => {
-    contact.addEventListener('click', () => {
-      const name = contact.getAttribute('data-name');
-      const status = contact.getAttribute('data-status');
-      document.getElementById('chatName').textContent = name;
-      document.getElementById('chatStatus').textContent = status;
+  // ---------- Login (email) ----------
+  loginBtn.addEventListener('click', async () => {
+    const emailRaw = loginEmail.value || '';
+    const email = normalizeEmail(emailRaw);
+    const pass = loginPassword.value || '';
+    if(!email || !pass) return alert('Ingresa email y contraseña.');
+    try {
+      showUpload('Iniciando sesión...');
+      await signInWithEmailAndPassword(auth, email, pass);
+    } catch(err) {
+      console.error(err);
+      const msg = (err && err.code) ? {
+        'auth/user-not-found': 'Usuario no encontrado.',
+        'auth/wrong-password': 'Contraseña incorrecta.',
+        'auth/invalid-email': 'Correo inválido.'
+      }[err.code] : err.message || 'Error inicio sesión';
+      alert(msg);
+    } finally { hideUpload(); }
+  });
+
+  // ---------- Google Sign-In ----------
+  googleSignInBtn.addEventListener('click', async () => {
+    try {
+      showUpload('Iniciando con Google...');
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+      // ensure mapping exists
+      await dbSet(dbRef(db, `users/${user.uid}`), { uid:user.uid, name:user.displayName||'', email:user.email||'', photo:user.photoURL||null });
+      if(user.email) await dbSet(dbRef(db, `emails/${sanitizeEmail(user.email)}`), user.uid);
+    } catch(err) {
+      console.error(err);
+      alert('Error Google Sign-In: ' + (err.message||err));
+    } finally { hideUpload(); }
+  });
+
+  // ---------- Auth state observer ----------
+  let currentUser = null;
+  onAuthStateChanged(auth, async (user) => {
+    if(user){
+      currentUser = user;
+      loginScreen.style.display='none';
+      registerScreen.style.display='none';
+      appRoot.style.display='block';
+      profilePic.src = user.photoURL || `https://i.pravatar.cc/50?u=${encodeURIComponent(user.uid)}`;
+      chatName.textContent = user.displayName || (user.email ? user.email.split('@')[0] : 'Usuario');
+      loadContacts();
+    } else {
+      currentUser = null;
+      appRoot.style.display='none';
+      loginScreen.style.display='flex';
+    }
+  });
+
+  // ---------- Contacts (guardados por número + nombre) ----------
+  async function loadContacts(){
+    if(!currentUser) return;
+    const path = `userContacts/${currentUser.uid}`;
+    const contactsRef = dbRef(db, path);
+    onValue(contactsRef, (snap)=>{
+      const data = snap.val() || {};
+      renderContacts(data);
+    });
+  }
+
+  function renderContacts(data){
+    contactsList.innerHTML='';
+    const entries = Object.entries(data || {});
+    if(entries.length === 0){
+      contactsList.innerHTML = '<div style="padding:12px;color:#666">No tienes contactos.</div>';
+      return;
+    }
+    entries.forEach(([phoneKey, meta])=>{
+      const div = document.createElement('div'); div.className='contact';
+      div.innerHTML = `<img src="${meta.photo || 'https://i.pravatar.cc/50?u='+encodeURIComponent(meta.phone||meta.name)}" alt="${meta.name||meta.phone}" />
+                       <div style="display:flex;flex-direction:column">
+                         <strong style="font-size:14px">${meta.name||meta.phone}</strong>
+                         <small style="color:#666">${meta.phone||''}</small>
+                       </div>`;
+      div.addEventListener('click', ()=> startChatWith(phoneKey, meta));
+      contactsList.appendChild(div);
+    });
+  }
+
+  // ---------- Add contact (with country selector) ----------
+  addContactBtn.addEventListener('click', async ()=>{
+    const nameRaw = addContactName.value || '';
+    const phoneRaw = addContactPhone.value || '';
+    const name = nameRaw.trim();
+    const selectedCountry = COUNTRIES[countrySelect.value || 0];
+    if(!currentUser) return alert('Inicia sesión primero.');
+    if(!name) return alert('Ingresa el nombre del contacto.');
+    if(!phoneRaw) return alert('Ingresa el número del contacto.');
+    // build E.164 using selected country dial + local number
+    const e164 = buildE164(selectedCountry.dial, phoneRaw);
+    if(!/^\+\d{6,15}$/.test(e164)) return alert('Número inválido. Asegúrate del código de país y número.');
+    const phoneKey = sanitizePhoneKey(e164);
+
+    try {
+      showUpload('Guardando contacto...');
+      const contactData = {
+        name,
+        phone: e164,
+        photo: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=ffffff&color=333333`,
+        createdAt: Date.now()
+      };
+      // Save contact under current user's contacts
+      await dbSet(dbRef(db, `userContacts/${currentUser.uid}/${phoneKey}`), contactData);
+
+      // Create a chat (conversation) between current user and this phoneKey immediately,
+      // even if the contact isn't registered.
+      const chatId = getChatId(currentUser.uid, phoneKey);
+      // Create an initial system message (optional)
+      const initialMsgRef = dbPush(dbRef(db, `conversations/${chatId}/messages`));
+      await dbSet(initialMsgRef, {
+        uid: currentUser.uid,
+        text: `Chat creado con ${name}`,
+        timestamp: Date.now(),
+        system: true
+      });
+
+      // Update userChats for current user and for the contactKey (so it appears in DB similarly to WhatsApp)
+      const lastMetaForMe = { with: phoneKey, lastMsg: `Chat creado`, timestamp: Date.now(), name: name };
+      await dbSet(dbRef(db, `userChats/${currentUser.uid}/${chatId}`), lastMetaForMe);
+      // also write a placeholder for the contact side (even if not registered)
+      const lastMetaForContact = { with: currentUser.uid, lastMsg: `Chat creado`, timestamp: Date.now(), name: currentUser.displayName || currentUser.email || 'Contacto' };
+      await dbSet(dbRef(db, `userChats/${phoneKey}/${chatId}`), lastMetaForContact);
+
+      alert('Contacto guardado y chat creado ✅');
+      addContactName.value = '';
+      addContactPhone.value = '';
+      // reload contacts (DB listener will handle UI)
+    } catch(err){
+      console.error(err);
+      alert('Error agregando contacto');
+    } finally { hideUpload(); }
+  });
+
+  // ---------- Chat 1:1 ----------
+  let currentChatId = null;
+  let currentChatContact = null;
+  function getChatId(a,b){ return [a,b].sort().join('_'); }
+
+  function startChatWith(contactKey, meta){
+    currentChatContact = Object.assign({ uid: contactKey }, meta);
+    chatName.textContent = meta.name || meta.phone || 'Contacto';
+    profilePic.src = meta.photo || profilePic.src;
+    chatStatus.textContent = 'en línea';
+    currentChatId = getChatId(currentUser.uid, contactKey);
+    chatArea.innerHTML = '';
+    subscribeMessages(currentChatId);
+  }
+
+  function subscribeMessages(chatId){
+    const messagesRef = dbRef(db, `conversations/${chatId}/messages`);
+    onValue(messagesRef, (snap)=>{
+      const data = snap.val() || {};
+      const list = Object.values(data).sort((a,b)=> (a.timestamp||0) - (b.timestamp||0));
       chatArea.innerHTML = '';
-      addMessage(`¡Hola! Soy ${name}`, 'received');
-      contactsPanel.classList.remove('active');
+      list.forEach(msg => renderMessageNode(msg));
       scrollChat();
     });
-  });
-
-  // ---------- HELPERS ----------
-  function scrollChat(){ chatArea.scrollTop = chatArea.scrollHeight; }
-  function playSendSound(){ sendSound.currentTime = 0; sendSound.play().catch(()=>{}); }
-  function playNotify(){ notifySound.currentTime = 0; notifySound.play().catch(()=>{}); }
-
-  function addMessage(content, type='received'){
-    const msg = document.createElement('div');
-    msg.classList.add('message', type === 'sent' ? 'sent' : 'received');
-    if (typeof content === 'string') msg.textContent = content;
-    else msg.appendChild(content); // allow Node (for audio/map)
-    chatArea.appendChild(msg);
-    scrollChat();
   }
 
-  // ---------- ENVIAR MENSAJE TEXTO ----------
-  sendBtn.addEventListener('click', sendMessage);
-  messageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
-  function sendMessage(){
+  function renderMessageNode(msg){
+    const div = document.createElement('div');
+    div.className = 'message ' + (msg.uid === currentUser.uid ? 'sent' : 'received');
+    if(msg.type === 'image'){
+      const img = document.createElement('img'); img.src = msg.url; img.style.maxWidth='240px'; img.style.borderRadius='8px'; div.appendChild(img);
+      if(msg.text) { const t = document.createElement('div'); t.textContent = msg.text; div.appendChild(t); }
+    } else if(msg.type === 'audio'){
+      const audio = document.createElement('audio'); audio.controls = true; audio.src = msg.url; div.appendChild(audio);
+    } else if(msg.type === 'file'){
+      const a = document.createElement('a'); a.href = msg.url; a.target = '_blank'; a.rel='noopener'; a.textContent = msg.name || 'Archivo'; div.appendChild(a);
+      if(msg.text) { const t = document.createElement('div'); t.textContent = msg.text; div.appendChild(t); }
+    } else if(msg.type === 'location'){
+      const a = document.createElement('a'); a.href = `https://www.openstreetmap.org/?mlat=${msg.lat}&mlon=${msg.lon}#map=18/${msg.lat}/${msg.lon}`; a.target='_blank'; a.textContent = msg.text || 'Ubicación'; div.appendChild(a);
+    } else {
+      div.textContent = msg.text || '';
+    }
+    const time = msg.timestamp ? ' · ' + new Date(msg.timestamp).toLocaleTimeString() : '';
+    const meta = document.createElement('div'); meta.style.fontSize='11px'; meta.style.color='#666'; meta.textContent = (msg.uid===currentUser.uid? 'Tú': (currentChatContact?.name||'')) + time;
+    div.appendChild(meta);
+    chatArea.appendChild(div);
+  }
+
+  async function sendMessageToFirebase(payload){
+    if(!currentChatId) return alert('Selecciona un contacto para chatear');
+    const messagesRef = dbRef(db, `conversations/${currentChatId}/messages`);
+    const newRef = dbPush(messagesRef);
+    await dbSet(newRef, payload);
+    // update last message meta for both sides
+    const last = { with: currentChatContact.uid, lastMsg: payload.text || (payload.type || 'archivo'), timestamp: Date.now(), name: currentChatContact.name };
+    await dbSet(dbRef(db, `userChats/${currentUser.uid}/${currentChatId}`), last);
+    const last2 = { with: currentUser.uid, lastMsg: payload.text || (payload.type || 'archivo'), timestamp: Date.now(), name: currentUser.displayName || currentUser.email };
+    await dbSet(dbRef(db, `userChats/${currentChatContact.uid}/${currentChatId}`), last2);
+  }
+
+  // send text
+  sendBtn.addEventListener('click', async ()=>{
     const text = messageInput.value.trim();
-    if (!text) return;
-    addMessage(text, 'sent');
-    messageInput.value = '';
-    playSendSound();
-    setTimeout(()=>{ addMessage('Recibido: ' + text, 'received'); playNotify(); }, 1000 + Math.random()*1200);
-  }
-
-  // ---------- FOTO y ARCHIVO ----------
-  photoBtn.addEventListener('click', ()=> photoInput.click());
-  photoInput.addEventListener('change', ()=> {
-    addMessage('📷 Foto enviada', 'sent');
-    playSendSound();
-    setTimeout(()=>{ addMessage('Imagen recibida', 'received'); playNotify(); }, 900 + Math.random()*900);
-  });
-  fileBtn.addEventListener('click', ()=> fileInput.click());
-  fileInput.addEventListener('change', ()=> {
-    addMessage('📎 Archivo enviado', 'sent');
-    playSendSound();
-    setTimeout(()=>{ addMessage('Archivo recibido', 'received'); playNotify(); }, 900 + Math.random()*900);
-  });
-
-  // ---------- UBICACIÓN -> abre en Google Maps ----------
-  locationBtn.addEventListener('click', () => {
-    if (!navigator.geolocation) { alert('Geolocalización no soportada.'); return; }
-    navigator.geolocation.getCurrentPosition(pos => {
-      const lat = pos.coords.latitude;
-      const lon = pos.coords.longitude;
-      // crear elemento con link a Google Maps (igual visual)
-      const link = document.createElement('a');
-      link.className = 'map-link';
-      link.href = `https://www.google.com/maps?q=${lat},${lon}`;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      link.innerHTML = `<span class="material-icons" aria-hidden="true">location_on</span><div><div>Ubicación compartida</div><small style="color:#444">${lat.toFixed(5)}, ${lon.toFixed(5)}</small></div>`;
-      addMessage(link, 'sent');
-      playSendSound();
-      setTimeout(()=>{ addMessage('Recibido tu punto ✔️','received'); playNotify(); }, 1000 + Math.random()*1000);
-    }, err => {
-      if (err && err.code === 1) alert('Permiso de ubicación denegado.');
-      else alert('No se pudo obtener la ubicación.');
-    }, { enableHighAccuracy: true, timeout: 10000 });
-  });
-
-  // ---------- NOTA DE VOZ REAL: mantener presionado para grabar ----------
-  let mediaRecorder = null;
-  let chunks = [];
-  let recording = false;
-
-  // timer UI minimal (se muestra en title del micrófono)
-  let timerInterval = null;
-  let startTime = 0;
-  function startTimer(){
-    startTime = Date.now();
-    micBtn.title = 'Grabando... 00:00 (suelta para enviar)';
-    timerInterval = setInterval(()=> {
-      const diff = Date.now() - startTime;
-      const s = Math.floor(diff/1000);
-      const mm = String(Math.floor(s/60)).padStart(2,'0');
-      const ss = String(s%60).padStart(2,'0');
-      micBtn.title = `Grabando... ${mm}:${ss} (suelta para enviar)`;
-    }, 250);
-  }
-  function stopTimer(){
-    clearInterval(timerInterval); timerInterval = null;
-    micBtn.title = 'Enviar nota de voz';
-  }
-
-  async function startRecording(){
+    if(!text) return;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      chunks = [];
+      await sendMessageToFirebase({ uid: currentUser.uid, text, timestamp: Date.now() });
+      messageInput.value = '';
+      playSendSound();
+    } catch(err){ console.error(err); alert('Error enviando'); }
+  });
+  messageInput.addEventListener('keypress', (e)=> { if(e.key==='Enter') sendBtn.click(); });
+
+  // ---------- Upload image / file ----------
+  photoBtn.addEventListener('click', ()=> photoInput.click());
+  photoInput.addEventListener('change', async ()=> {
+    const file = photoInput.files[0];
+    if(!file) return;
+    if(!currentChatId) { alert('Selecciona un contacto primero'); return; }
+    try {
+      showUpload('Subiendo imagen...');
+      const path = `conversations/${currentChatId}/media/${Date.now()}_${file.name}`;
+      const sRef = storageRef(storage, path);
+      await uploadBytes(sRef, file);
+      const url = await getDownloadURL(sRef);
+      await sendMessageToFirebase({ uid: currentUser.uid, type:'image', url, name:file.name, text:'', timestamp: Date.now() });
+      playSendSound();
+    } catch(err){ console.error(err); alert('Error subiendo'); }
+    finally { hideUpload(); photoInput.value=''; }
+  });
+
+  fileBtn.addEventListener('click', ()=> fileInput.click());
+  fileInput.addEventListener('change', async ()=> {
+    const file = fileInput.files[0];
+    if(!file) return;
+    if(!currentChatId) { alert('Selecciona un contacto primero'); return; }
+    try {
+      showUpload('Subiendo archivo...');
+      const path = `conversations/${currentChatId}/media/${Date.now()}_${file.name}`;
+      const sRef = storageRef(storage, path);
+      await uploadBytes(sRef, file);
+      const url = await getDownloadURL(sRef);
+      await sendMessageToFirebase({ uid: currentUser.uid, type:'file', url, name:file.name, timestamp: Date.now() });
+      playSendSound();
+    } catch(err){ console.error(err); alert('Error subiendo'); }
+    finally { hideUpload(); fileInput.value=''; }
+  });
+
+  // ---------- Audio recording ----------
+  let mediaRecorder = null, chunks = [], recording = false;
+  let pressTimeout = null, PRESS_DELAY = 150;
+  micBtn.addEventListener('mousedown', startPress);
+  micBtn.addEventListener('touchstart', startPress, {passive:false});
+  document.addEventListener('mouseup', endPress);
+  document.addEventListener('touchend', endPress);
+
+  function startPress(e){
+    e.preventDefault();
+    if(pressTimeout) clearTimeout(pressTimeout);
+    pressTimeout = setTimeout(()=> { beginRecording(); pressTimeout=null; }, PRESS_DELAY);
+  }
+  function endPress(e){
+    if(pressTimeout){ clearTimeout(pressTimeout); pressTimeout=null; return; }
+    if(recording) stopRecordingAndUpload();
+  }
+
+  async function beginRecording(){
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio:true });
       mediaRecorder = new MediaRecorder(stream);
-      mediaRecorder.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(chunks, { type: chunks[0]?.type || 'audio/webm' });
-        createAudioMessage(blob);
-        // stop tracks
-        stream.getTracks().forEach(t => t.stop());
-      };
+      chunks = [];
+      mediaRecorder.ondataavailable = ev => { if(ev.data && ev.data.size>0) chunks.push(ev.data); };
       mediaRecorder.start();
       recording = true;
       micIcon.textContent = 'mic_off';
-      micBtn.style.background = '#d9534f'; // visual feedback
-      startTimer();
-    } catch (e) {
-      console.error(e);
-      alert('No se pudo acceder al micrófono. Revisa permisos.');
-    }
+      micBtn.style.background='#d9534f';
+    } catch(err){ console.error(err); alert('No access to mic'); }
   }
-
-  function stopRecording(){
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-      mediaRecorder.stop();
-    }
+  async function stopRecordingAndUpload(){
+    if(!mediaRecorder) return;
+    mediaRecorder.onstop = async ()=> {
+      const blob = new Blob(chunks, { type: chunks[0]?.type || 'audio/webm' });
+      if(!currentChatId) { alert('Selecciona un contacto'); return; }
+      try {
+        showUpload('Subiendo audio...');
+        const path = `conversations/${currentChatId}/media/${Date.now()}_${Math.random().toString(36).slice(2)}.webm`;
+        const sRef = storageRef(storage, path);
+        await uploadBytes(sRef, blob);
+        const url = await getDownloadURL(sRef);
+        await sendMessageToFirebase({ uid: currentUser.uid, type:'audio', url, timestamp: Date.now() });
+        playSendSound();
+      } catch(err){ console.error(err); alert('Error subiendo audio'); }
+      finally { hideUpload(); }
+    };
+    mediaRecorder.stop();
+    mediaRecorder.stream && mediaRecorder.stream.getTracks().forEach(t=>t.stop());
     mediaRecorder = null;
     recording = false;
     micIcon.textContent = 'mic';
-    micBtn.style.background = ''; // reset
-    stopTimer();
+    micBtn.style.background='';
   }
 
-  // press & hold behavior (mouse + touch)
-  let pressTimeout = null;
-  const PRESS_DELAY = 150; // ms to avoid accidental taps
-  function onStartPress(e){
-    e.preventDefault();
-    if (pressTimeout) clearTimeout(pressTimeout);
-    pressTimeout = setTimeout(()=> {
-      startRecording();
-      pressTimeout = null;
-    }, PRESS_DELAY);
-  }
-  function onEndPress(e){
-    e.preventDefault();
-    if (pressTimeout) { clearTimeout(pressTimeout); pressTimeout = null; return; }
-    // if recording, stop and send
-    if (recording) stopRecording();
-    else {
-      // short tap -> provide hint
-      alert('Mantén presionado el botón para grabar una nota de voz. Suelta para enviar.');
-    }
-  }
-
-  micBtn.addEventListener('mousedown', onStartPress);
-  document.addEventListener('mouseup', (e)=> {
-    if (pressTimeout) { clearTimeout(pressTimeout); pressTimeout = null; }
-    if (recording) stopRecording();
-  });
-  micBtn.addEventListener('touchstart', onStartPress, {passive:false});
-  micBtn.addEventListener('touchend', (e)=> { if (pressTimeout) { clearTimeout(pressTimeout); pressTimeout = null; } if (recording) stopRecording(); });
-
-  // create audio message bubble with small player
-  function createAudioMessage(blob){
-    const url = URL.createObjectURL(blob);
-    const container = document.createElement('div');
-    container.className = 'audio-bubble';
-    const wrapper = document.createElement('div');
-    wrapper.className = 'audio-player';
-
-    // play button
-    const playBtn = document.createElement('button');
-    playBtn.className = 'audio-play';
-    playBtn.innerHTML = '<span class="material-icons">play_arrow</span>';
-    playBtn.type = 'button';
-
-    // progress
-    const progress = document.createElement('div');
-    progress.className = 'audio-progress';
-    const bar = document.createElement('div');
-    bar.className = 'bar';
-    progress.appendChild(bar);
-
-    // duration placeholder
-    const duration = document.createElement('div');
-    duration.className = 'audio-duration';
-    duration.textContent = '00:00';
-
-    // audio element
-    const audio = document.createElement('audio');
-    audio.src = url;
-    audio.preload = 'metadata';
-
-    // when metadata loaded, set duration text
-    audio.addEventListener('loadedmetadata', ()=> {
-      const s = Math.round(audio.duration);
-      const mm = String(Math.floor(s/60)).padStart(2,'0');
-      const ss = String(s%60).padStart(2,'0');
-      duration.textContent = `${mm}:${ss}`;
-    });
-
-    // update bar while playing
-    let raf = null;
-    function update(){
-      if (!isNaN(audio.duration) && audio.duration > 0) {
-        const pct = (audio.currentTime / audio.duration) * 100;
-        bar.style.width = pct + '%';
-      }
-      if (!audio.paused) raf = requestAnimationFrame(update);
-    }
-
-    playBtn.addEventListener('click', ()=> {
-      if (audio.paused) {
-        // pause other audios
-        document.querySelectorAll('audio').forEach(a => { if (a !== audio) { a.pause(); } });
-        audio.play().catch(()=>{});
-        playBtn.innerHTML = '<span class="material-icons">pause</span>';
-        update();
-      } else {
-        audio.pause();
-        playBtn.innerHTML = '<span class="material-icons">play_arrow</span>';
-        if (raf) cancelAnimationFrame(raf);
-      }
-    });
-
-    audio.addEventListener('ended', ()=> {
-      playBtn.innerHTML = '<span class="material-icons">play_arrow</span>';
-      bar.style.width = '0%';
-      if (raf) cancelAnimationFrame(raf);
-    });
-
-    // seek when clicking progress
-    progress.addEventListener('click', (ev) => {
-      const rect = progress.getBoundingClientRect();
-      const pct = Math.min(Math.max(0, (ev.clientX - rect.left) / rect.width), 1);
-      if (!isNaN(audio.duration)) audio.currentTime = pct * audio.duration;
-    });
-
-    wrapper.appendChild(playBtn);
-    wrapper.appendChild(progress);
-    wrapper.appendChild(duration);
-    container.appendChild(wrapper);
-
-    // append as sent message (keeping same visual)
-    const msgWrap = document.createElement('div');
-    msgWrap.className = 'message sent';
-    msgWrap.appendChild(container);
-    chatArea.appendChild(msgWrap);
-    scrollChat();
-    playSendSound();
-    // simulate received ack
-    setTimeout(()=> { addMessage('Escuché tu nota de voz 👍', 'received'); playNotify(); }, 1100 + Math.random()*900);
-  }
-
-  // ---------- CALL & VIDEO (simulación permisos) ----------
-  document.getElementById('callBtn').addEventListener('click', async () => {
-    try {
-      await navigator.mediaDevices.getUserMedia({ audio: true });
-      alert('Llamada iniciada (simulación): mic activo');
-    } catch {
-      alert('Permiso de micrófono denegado');
-    }
-  });
-  document.getElementById('videoBtn').addEventListener('click', async () => {
-    try {
-      await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      alert('Videollamada iniciada (simulación): cam y mic activos');
-    } catch {
-      alert('Permiso de cámara y micrófono denegado');
-    }
+  // ---------- Location ----------
+  locationBtn.addEventListener('click', ()=>{
+    if(!navigator.geolocation) return alert('Geolocalización no soportada.');
+    navigator.geolocation.getCurrentPosition(async (pos)=>{
+      const lat = pos.coords.latitude, lon = pos.coords.longitude;
+      if(!currentChatId) return alert('Selecciona un contacto primero');
+      try {
+        await sendMessageToFirebase({ uid: currentUser.uid, type:'location', lat, lon, text:`Ubicación: ${lat.toFixed(5)},${lon.toFixed(5)}`, timestamp: Date.now() });
+        playSendSound();
+      } catch(err){ console.error(err); alert('Error enviando ubicación'); }
+    }, err=>{
+      if(err && err.code===1) alert('Permiso de ubicación denegado.');
+      else alert('No se pudo obtener la ubicación.');
+    }, { enableHighAccuracy:true, timeout:10000 });
   });
 
-  // ---------- PROFILE PHOTO CHANGE ----------
-  const profilePhoto = document.getElementById('profilePhoto');
-  let fileInputProfile = document.createElement('input');
-  fileInputProfile.type = 'file';
-  fileInputProfile.accept = 'image/*';
-  fileInputProfile.style.display = 'none';
-  document.body.appendChild(fileInputProfile);
+  // ---------- Profile edit ----------
+  configBtn.addEventListener('click', ()=> {
+    configMenu.style.display = configMenu.style.display==='block' ? 'none' : 'block';
+    if(configMenu.style.display==='block'){
+      changeName.value = currentUser.displayName || '';
+      changePhoto.value = currentUser.photoURL || '';
+    }
+  });
+  document.addEventListener('click', (e)=>{
+    if (!configMenu.contains(e.target) && e.target !== configBtn) configMenu.style.display='none';
+  });
 
-  profilePhoto.addEventListener('click', () => fileInputProfile.click());
-  fileInputProfile.addEventListener('change', () => {
-    const file = fileInputProfile.files[0];
-    if (file) {
+  changePhotoFile.addEventListener('change', (e)=>{
+    const f = e.target.files[0];
+    if(f) {
       const reader = new FileReader();
-      reader.onload = (e) => document.getElementById('profilePic').src = e.target.result;
-      reader.readAsDataURL(file);
+      reader.onload = (ev)=> { changePhoto.value = ev.target.result; };
+      reader.readAsDataURL(f);
     }
   });
 
-  // small accessibility: announce new messages
-  const observer = new MutationObserver(() => {
-    // called when chatArea changes - optionally do something
+  saveProfileBtn.addEventListener('click', async ()=>{
+    const newName = changeName.value.trim();
+    const newPhotoVal = changePhoto.value.trim();
+    try {
+      showUpload('Actualizando perfil...');
+      let photoURL = currentUser.photoURL;
+      if(newPhotoVal && newPhotoVal.startsWith('data:')) {
+        const blob = dataURLtoBlob(newPhotoVal);
+        const path = `users/${currentUser.uid}/profile_${Date.now()}.png`;
+        const sRef = storageRef(storage, path);
+        await uploadBytes(sRef, blob);
+        photoURL = await getDownloadURL(sRef);
+      } else if(newPhotoVal) {
+        photoURL = newPhotoVal;
+      }
+      await updateProfile(currentUser, { displayName: newName || currentUser.displayName, photoURL });
+      await dbSet(dbRef(db, `users/${currentUser.uid}`), { uid: currentUser.uid, name: currentUser.displayName, email: currentUser.email, photo: currentUser.photoURL });
+      profilePic.src = currentUser.photoURL || photoURL || profilePic.src;
+      chatName.textContent = currentUser.displayName || newName || chatName.textContent;
+      if(changePassword.value) {
+        try {
+          await updatePassword(currentUser, changePassword.value);
+          alert('Contraseña actualizada.');
+        } catch(err) {
+          console.error(err);
+          alert('No se pudo cambiar contraseña. Es posible que necesites volver a iniciar sesión.');
+        }
+      }
+      alert('Perfil actualizado');
+    } catch(err){ console.error(err); alert('Error actualizando perfil'); }
+    finally { hideUpload(); configMenu.style.display='none'; changePassword.value=''; }
   });
-  observer.observe(chatArea, { childList: true });
 
-  // ---------- inicial scroll ----------
+  function dataURLtoBlob(dataurl){ const arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1]; const bstr = atob(arr[1]); let n = bstr.length; const u8arr = new Uint8Array(n); while(n--) u8arr[n] = bstr.charCodeAt(n); return new Blob([u8arr], {type:mime}); }
+
+  signOutBtn.addEventListener('click', async ()=>{ await signOut(auth); location.reload(); });
+
+  // quick profile change
+  const profilePhoto = document.getElementById('profilePhoto');
+  const quickProfileFile = document.createElement('input'); quickProfileFile.type='file'; quickProfileFile.accept='image/*'; quickProfileFile.style.display='none'; document.body.appendChild(quickProfileFile);
+  profilePhoto.addEventListener('click', ()=> quickProfileFile.click());
+  quickProfileFile.addEventListener('change', async (e)=>{
+    const f = e.target.files[0]; if(!f) return;
+    try {
+      showUpload('Subiendo foto...');
+      const path = `users/${currentUser.uid}/avatar_${Date.now()}_${f.name}`;
+      const sRef = storageRef(storage, path);
+      await uploadBytes(sRef, f);
+      const url = await getDownloadURL(sRef);
+      await updateProfile(currentUser, { photoURL: url });
+      await dbSet(dbRef(db, `users/${currentUser.uid}`), { uid: currentUser.uid, name: currentUser.displayName || '', email: currentUser.email || '', photo: url });
+      profilePic.src = url;
+      alert('Foto actualizada');
+    } catch(err){ console.error(err); alert('Error subiendo foto'); }
+    finally { hideUpload(); }
+  });
+
+  // contacts toggle
+  contactsBtn.addEventListener('click', ()=> contactsPanel.classList.toggle('active'));
+
+  // misc
+  function addMessageLocal(content, type='received'){ const d = document.createElement('div'); d.className='message ' + (type==='sent'? 'sent' : 'received'); if(typeof content === 'string') d.textContent = content; else d.appendChild(content); chatArea.appendChild(d); scrollChat(); }
   scrollChat();
 
-  // ---------- FIN ----------
 </script>
 
 </body>
