@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>WhatsApp Realista Chat App</title>
+<title>ChatYumi — WhatsApp Realista Chat App</title>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
 <style>
   /* === Estilos: idéntico diseño visual pedido === */
@@ -15,8 +15,9 @@
   html,body{height:100%;margin:0;font-family:"Segoe UI",Arial,sans-serif;background:#ece5dd}
   .app { display:flex; flex-direction:column; width:100%; height:100vh; max-width:1600px; margin:0 auto; background:#fff; position:relative; }
   .header { background:var(--header-bg); color:#fff; display:flex; align-items:center; justify-content:space-between; padding:12px; z-index:50; }
-  .header .chat-info { display:flex; align-items:center; cursor:pointer; }
+  .header .chat-info { display:flex; align-items:center; cursor:pointer; gap:12px; }
   .header img { width:45px; height:45px; border-radius:50%; margin-right:10px; object-fit:cover; }
+  .app-title { font-weight:800; font-size:18px; color:#fff; letter-spacing:0.2px }
   .header .actions i { margin-left:15px; cursor:pointer; color:white; user-select:none; }
 
   .config-menu { display:none; position:absolute; top:60px; right:10px; background:#fff; border:1px solid #ccc; border-radius:8px; width:260px; box-shadow:0 4px 8px rgba(0,0,0,0.3); z-index:100; padding:10px; color:#222 }
@@ -61,6 +62,8 @@
   .contacts-panel .country-select { display:flex; gap:8px; align-items:center; }
   .country-select select { padding:8px; border-radius:8px; border:1px solid #ddd; background:#fff }
   .flag { font-size:18px; margin-right:6px; }
+
+  .status-small { font-size:12px; color:#cfcfcf; }
 </style>
 </head>
 <body>
@@ -105,15 +108,16 @@
     <!-- Header -->
     <div class="header">
       <div class="chat-info" id="profilePhoto" title="Cambiar foto">
-        <img src="https://i.pravatar.cc/50" alt="Contacto" id="profilePic" />
+        <img src="https://i.pravatar.cc/50" alt="Avatar" id="profilePic" />
         <div>
-          <strong id="chatName">Contacto</strong><br />
+          <div class="app-title">ChatYumi</div>
           <small class="status-small" id="chatStatus">en línea</small>
         </div>
       </div>
       <div class="actions">
         <i class="material-icons" id="callBtn" title="Llamada">call</i>
         <i class="material-icons" id="videoBtn" title="Videollamada">videocam</i>
+        <!-- single settings button as gear -->
         <i class="material-icons" id="configBtn" title="Ajustes" style="font-size:28px">settings</i>
 
         <div class="config-menu" id="configMenu" aria-hidden="true">
@@ -164,7 +168,7 @@
       <h3>Mis Contactos</h3>
       <div id="contactsList"></div>
 
-      <!-- FORMULARIO: ahora guarda solo nombre + teléfono (estilo WhatsApp) -->
+      <!-- FORMULARIO: ahora guarda nombre + teléfono (estilo WhatsApp) -->
       <div class="add-form" aria-label="Agregar contacto">
         <input id="addContactName" placeholder="Nombre del contacto" />
         <div class="row">
@@ -317,20 +321,15 @@
   // phone normalization for keys and presentation
   function normalizePhone(p){
     if(!p) return '';
-    // remove spaces, parentheses, hyphens, dots
     let s = p.replace(/[()\s.-]/g,'');
-    // if user typed local number without leading +country, we assume countrySelect will provide country code
     return s;
   }
   function buildE164(countryDial, localNumber){
-    // countryDial like +593, localNumber digits
     const onlyDigits = (localNumber||'').replace(/[^\d]/g,'');
-    // remove leading zeros if user typed them (common)
     const normalizedLocal = onlyDigits.replace(/^0+/, '');
-    return `${countryDial}${normalizedLocal}`; // e.g. +593987654321
+    return `${countryDial}${normalizedLocal}`;
   }
   function sanitizePhoneKey(p){
-    // keep + and digits only for key
     return (p||'').replace(/[^\d\+]/g,'');
   }
 
@@ -354,7 +353,7 @@
     countrySelect.innerHTML = '';
     COUNTRIES.forEach((c, idx)=>{
       const opt = document.createElement('option');
-      opt.value = idx; // index for easy lookup
+      opt.value = idx;
       opt.textContent = `${c.flag} ${c.name} ${c.dial}`;
       countrySelect.appendChild(opt);
     });
@@ -385,9 +384,7 @@
       const cred = await createUserWithEmailAndPassword(auth, email, pass);
       const user = cred.user;
       await updateProfile(user, { displayName: name, photoURL: `https://i.pravatar.cc/150?u=${encodeURIComponent(email)}` });
-      // Save users by uid
       await dbSet(dbRef(db, `users/${user.uid}`), { uid:user.uid, name, email, photo:user.photoURL||null, createdAt: Date.now() });
-      // Save mapping email -> uid using canonical sanitize
       await dbSet(dbRef(db, `emails/${sanitizeEmail(email)}`), user.uid);
       alert('Cuenta creada. Inicia sesión.');
       registerScreen.style.display='none';
@@ -429,7 +426,6 @@
       showUpload('Iniciando con Google...');
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
-      // ensure mapping exists
       await dbSet(dbRef(db, `users/${user.uid}`), { uid:user.uid, name:user.displayName||'', email:user.email||'', photo:user.photoURL||null });
       if(user.email) await dbSet(dbRef(db, `emails/${sanitizeEmail(user.email)}`), user.uid);
     } catch(err) {
@@ -447,7 +443,9 @@
       registerScreen.style.display='none';
       appRoot.style.display='block';
       profilePic.src = user.photoURL || `https://i.pravatar.cc/50?u=${encodeURIComponent(user.uid)}`;
-      chatName.textContent = user.displayName || (user.email ? user.email.split('@')[0] : 'Usuario');
+      // show user's name in header subtitle
+      chatStatus.textContent = 'en línea';
+      document.querySelector('.app-title').textContent = 'ChatYumi • ' + (user.displayName || (user.email ? user.email.split('@')[0] : 'Usuario'));
       loadContacts();
     } else {
       currentUser = null;
@@ -495,7 +493,6 @@
     if(!currentUser) return alert('Inicia sesión primero.');
     if(!name) return alert('Ingresa el nombre del contacto.');
     if(!phoneRaw) return alert('Ingresa el número del contacto.');
-    // build E.164 using selected country dial + local number
     const e164 = buildE164(selectedCountry.dial, phoneRaw);
     if(!/^\+\d{6,15}$/.test(e164)) return alert('Número inválido. Asegúrate del código de país y número.');
     const phoneKey = sanitizePhoneKey(e164);
@@ -508,13 +505,9 @@
         photo: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=ffffff&color=333333`,
         createdAt: Date.now()
       };
-      // Save contact under current user's contacts
       await dbSet(dbRef(db, `userContacts/${currentUser.uid}/${phoneKey}`), contactData);
 
-      // Create a chat (conversation) between current user and this phoneKey immediately,
-      // even if the contact isn't registered.
       const chatId = getChatId(currentUser.uid, phoneKey);
-      // Create an initial system message (optional)
       const initialMsgRef = dbPush(dbRef(db, `conversations/${chatId}/messages`));
       await dbSet(initialMsgRef, {
         uid: currentUser.uid,
@@ -523,17 +516,14 @@
         system: true
       });
 
-      // Update userChats for current user and for the contactKey (so it appears in DB similarly to WhatsApp)
       const lastMetaForMe = { with: phoneKey, lastMsg: `Chat creado`, timestamp: Date.now(), name: name };
       await dbSet(dbRef(db, `userChats/${currentUser.uid}/${chatId}`), lastMetaForMe);
-      // also write a placeholder for the contact side (even if not registered)
       const lastMetaForContact = { with: currentUser.uid, lastMsg: `Chat creado`, timestamp: Date.now(), name: currentUser.displayName || currentUser.email || 'Contacto' };
       await dbSet(dbRef(db, `userChats/${phoneKey}/${chatId}`), lastMetaForContact);
 
       alert('Contacto guardado y chat creado ✅');
       addContactName.value = '';
       addContactPhone.value = '';
-      // reload contacts (DB listener will handle UI)
     } catch(err){
       console.error(err);
       alert('Error agregando contacto');
@@ -547,7 +537,7 @@
 
   function startChatWith(contactKey, meta){
     currentChatContact = Object.assign({ uid: contactKey }, meta);
-    chatName.textContent = meta.name || meta.phone || 'Contacto';
+    document.querySelector('.app-title').textContent = 'ChatYumi • ' + (meta.name || meta.phone);
     profilePic.src = meta.photo || profilePic.src;
     chatStatus.textContent = 'en línea';
     currentChatId = getChatId(currentUser.uid, contactKey);
@@ -593,7 +583,6 @@
     const messagesRef = dbRef(db, `conversations/${currentChatId}/messages`);
     const newRef = dbPush(messagesRef);
     await dbSet(newRef, payload);
-    // update last message meta for both sides
     const last = { with: currentChatContact.uid, lastMsg: payload.text || (payload.type || 'archivo'), timestamp: Date.now(), name: currentChatContact.name };
     await dbSet(dbRef(db, `userChats/${currentUser.uid}/${currentChatId}`), last);
     const last2 = { with: currentUser.uid, lastMsg: payload.text || (payload.type || 'archivo'), timestamp: Date.now(), name: currentUser.displayName || currentUser.email };
@@ -720,7 +709,7 @@
   // ---------- Profile edit ----------
   configBtn.addEventListener('click', ()=> {
     configMenu.style.display = configMenu.style.display==='block' ? 'none' : 'block';
-    if(configMenu.style.display==='block'){
+    if(configMenu.style.display==='block' && currentUser){
       changeName.value = currentUser.displayName || '';
       changePhoto.value = currentUser.photoURL || '';
     }
@@ -739,10 +728,11 @@
   });
 
   saveProfileBtn.addEventListener('click', async ()=>{
-    const newName = changeName.value.trim();
-    const newPhotoVal = changePhoto.value.trim();
     try {
+      if(!currentUser) return alert('Inicia sesión primero');
       showUpload('Actualizando perfil...');
+      const newName = changeName.value.trim();
+      const newPhotoVal = changePhoto.value.trim();
       let photoURL = currentUser.photoURL;
       if(newPhotoVal && newPhotoVal.startsWith('data:')) {
         const blob = dataURLtoBlob(newPhotoVal);
@@ -754,9 +744,9 @@
         photoURL = newPhotoVal;
       }
       await updateProfile(currentUser, { displayName: newName || currentUser.displayName, photoURL });
-      await dbSet(dbRef(db, `users/${currentUser.uid}`), { uid: currentUser.uid, name: currentUser.displayName, email: currentUser.email, photo: currentUser.photoURL });
-      profilePic.src = currentUser.photoURL || photoURL || profilePic.src;
-      chatName.textContent = currentUser.displayName || newName || chatName.textContent;
+      await dbSet(dbRef(db, `users/${currentUser.uid}`), { uid: currentUser.uid, name: currentUser.displayName || newName, email: currentUser.email, photo: photoURL });
+      profilePic.src = photoURL || profilePic.src;
+      document.querySelector('.app-title').textContent = 'ChatYumi • ' + (currentUser.displayName || newName || 'Usuario');
       if(changePassword.value) {
         try {
           await updatePassword(currentUser, changePassword.value);
@@ -782,6 +772,7 @@
   quickProfileFile.addEventListener('change', async (e)=>{
     const f = e.target.files[0]; if(!f) return;
     try {
+      if(!currentUser) return alert('Inicia sesión primero');
       showUpload('Subiendo foto...');
       const path = `users/${currentUser.uid}/avatar_${Date.now()}_${f.name}`;
       const sRef = storageRef(storage, path);
@@ -799,7 +790,7 @@
   contactsBtn.addEventListener('click', ()=> contactsPanel.classList.toggle('active'));
 
   // misc
-  function addMessageLocal(content, type='received'){ const d = document.createElement('div'); d.className='message ' + (type==='sent'? 'sent' : 'received'); if(typeof content === 'string') d.textContent = content; else d.appendChild(content); chatArea.appendChild(d); scrollChat(); }
+  function addMessageLocal(content, type='received'){ const d = document.createElement('div'); d.className = 'message ' + (type==='sent'? 'sent' : 'received'); if(typeof content === 'string') d.textContent = content; else d.appendChild(content); chatArea.appendChild(d); scrollChat(); }
   scrollChat();
 
 </script>
